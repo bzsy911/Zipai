@@ -34,7 +34,16 @@ class TestCardMethods(unittest.TestCase):
 
 
 class TestPairMethods(unittest.TestCase):
-    pass
+    
+    def setUp(self):
+        self.pair = obj.Pair(107)
+    
+    def test_attributes(self):
+        self.assertEqual(self.pair.orders, [107, 107])
+        self.assertEqual(self.pair.red, 2)
+        self.assertEqual(self.pair.points, 0)
+    
+    
 class TestShunMethods(unittest.TestCase):
     pass
 class TestYiErSanMethods(unittest.TestCase):
