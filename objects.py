@@ -8,7 +8,7 @@ Created on Mon Mar  5 10:15:29 2018
 """############################################################
    # Card     Set              Partial                        #
    #          |-- Pair         |-- Dandiao                    #
-   #          |-- Shun         |-- PaShun                     #
+   # Hand     |-- Shun         |-- PaShun                     #
    #          |-- YiErSan      |-- PaMixed                    #
    #          |-- Mixed        |-- Pa2710                     #
    #          |-- ErQiShi      |-- Liangjia                   #
@@ -455,12 +455,16 @@ class Hand:
     
     Attributes
     ----------
-    private_usage : list[Partial, Set]
-        List of private cards that can qia(fu, beng, pao, dia) the coming card,
-        all possiblities are considered, regardless of rules
-    public_usage : int or None
+    orders : list[int]
+        The corresponding orders of private cards
+    dups_holding : int
+        Number of same cards as coming holding in hand privately
+    private_usage : list[Set]
+        List of possiblities of using the coming card, all possiblities are 
+        considered, regardless of rules
+    public_usage : [int] (current inconsistent with private_usage here)
         The index in public of the Set that can pao(dia) the coming card
-    shout : str
+    shout : TBD
         The corresponding slang to shout out after decision
     """
     def __init__(self, private, public, coming):
