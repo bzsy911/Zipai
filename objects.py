@@ -122,7 +122,7 @@ class Shun(Set):
     Parameters
     ----------
     mid : int
-        The midder order of this Shun, from 3 to 9, or 103 to 109
+        The middle order of this Shun, from 3 to 9, or 103 to 109
     qia : int, Optional (default == -1)
         1,2,3 for qia-position, 0 for not-qia, -1 for unknown
     """
@@ -439,3 +439,110 @@ class Pa2710(Partial):
     def qia(self):
         return ErQiShi(self.cards[0].tp, (self.waiting_list[0] % 100)//5+1)
 
+
+class Hand:
+    """The basic setup of a playing hand, including private cards holding in 
+    hand, public sets placed on table, and the coming card triggering events.
+    
+    Parameters
+    ----------
+    private : list[Card]
+        Cards holding in hand
+    public : list[Set]
+        Sets placed on table
+    coming : Card
+        The new card taken from card pool, or played from hand, by a player
+    
+    Attributes
+    ----------
+    private_usage : list[Partial, Set]
+        List of private cards that can qia(fu, beng, pao, dia) the coming card,
+        all possiblities are considered, regardless of rules
+    public_usage : int or None
+        The index in public of the Set that can pao(dia) the coming card
+    shout : str
+        The corresponding slang to shout out after decision
+    """
+    def __init__(self, private, public, coming):
+        self.private = sorted(private)
+        self.public = public
+        self.coming = coming
+        self.orders = [x.order for x in self.private]
+        self.dups_holding = self.orders.count(self.coming.order)
+        self.private_usage = self.check_private()
+        self.public_usage = self.check_public()
+        self.shout = self.shout()
+        
+
+    
+    def check_public(self):
+        for i in range(len(self.public)):
+            if [x.order for x in self.public[i]].count(self.coming.order) == 3:
+                return i
+        return []
+
+
+    def check_private(self):
+        res = []
+        for cat in ['gang', 'ke', 'shun', '2710', 'mixed']:
+            res += getattr(self, '_check_'+cat)()
+        return res
+    
+    def _check_gang(self):
+        return [Gang(self.coming.order)] if self.dups_holding == 3 else []
+    
+    def _check_ke(self):
+        return [Ke(self.coming.order)] if self.dups_holding == 2 else []
+
+    def _check_shun(self):
+        res = []
+        # check left, two-sides, and right respectively
+        pos = [-2, -1, 1, 2]
+        for i in range(3):
+            if (self.coming.order + pos[i] in self.orders and 
+                self.coming.order + pos[i+1] in self.orders):
+                if self.coming.num == 3-i:
+                    res.append(YiErSan(self.coming.tp))
+                else:
+                    res.append(Shun(self.coming.order + i - 1))
+        return res
+    
+    def _check_2710(self):
+        if self.coming.num in [2, 7, 10]:
+            the_other_two = [x.order for x in ErQiShi(self.coming.tp).cards]
+            the_other_two.remove(self.coming.order)
+            if set(the_other_two) <= set(self.orders):
+                return [ErQiShi(self.coming.tp)]
+        return []
+            
+    def _check_mixed(self):
+        # two ways to qia mixed
+        res = []
+        if set([self.coming.num, self.coming.num+100]) <= set(self.orders):
+            res.append(Mixed(self.coming.num, self.coming.tp))
+        if self.orders.count(self.coming.num-(2*self.coming.tp-1)*100) == 2:
+            res.append(Mixed(self.coming.num, not self.coming.tp))
+        return res
+    
+    
+    def shout(self):
+        pass
+
+
+
+if __name__=='__main__':
+    
+    import random
+    
+    def shuffle():
+        deck = []
+        for i in range(10):
+            deck.extend([Card(i+1), Card(i+101)] * 4)
+        random.shuffle(deck)
+        return deck
+    
+    deck = shuffle()
+    h = Hand(sorted(deck[:20]), [], deck[20])
+    print(h.orders)
+    print(h.coming.order)
+    print([res.__str__() for res in h.private_usage])
