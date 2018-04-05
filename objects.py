@@ -21,7 +21,9 @@ Created on Mon Mar  5 10:15:29 2018
    ############################################################
 """
 
-from utils import HANZI
+from const import HANZI, Functions
+
+from collections import deque
 
 
 class Card:
@@ -370,7 +372,7 @@ class PaShun(Partial):
     is_lian : boolean
         True if 2 numbers are adjacent, False if separate
     waiting_list : list[int]
-        The candidate numbers of the third
+        The candidate card orders of the third
     
     """  
     def __init__(self, orders):
@@ -415,7 +417,6 @@ class PaMixed(Partial):
     
     def qia(self, tp):
         return Mixed(self.cards[0].num, tp, 2)
-
 
 
 class Pa2710(Partial):
@@ -478,13 +479,11 @@ class Hand:
         self.shout = self.shout()
         
 
-    
     def check_public(self):
         for i in range(len(self.public)):
             if [x.order for x in self.public[i]].count(self.coming.order) == 3:
                 return i
         return []
-
 
     def check_private(self):
         res = []
@@ -524,16 +523,32 @@ class Hand:
         res = []
         if set([self.coming.num, self.coming.num+100]) <= set(self.orders):
             res.append(Mixed(self.coming.num, self.coming.tp))
-        if self.orders.count(self.coming.num-(2*self.coming.tp-1)*100) == 2:
+        if self.orders.count(self.coming.order-(2*self.coming.tp-1)*100) == 2:
             res.append(Mixed(self.coming.num, not self.coming.tp))
         return res
     
-    
     def shout(self):
         pass
-
-
-
+    
+    def group(self):
+        # aim to list all posible combinations of private card
+        # assume: no dia is in private. They should be dropped as soon as appear
+        # rules: Xiaos must be grouped 
+        # if length == 3k, make 0 pair, 0 dandiao
+        # if length == 3k+1, make 1 pair, or 1 dandiao
+        # if length == 3k+2, make 1 pair, 0 dandiao
+        xiaos = set([order for order in self.orders if self.orders.count(order) == 3])
+        d = [order for order in self.orders if order not in xiaos]
+        
+        # search with bfs, keep a dict of strs to avoid dup
+        groupings = set()
+        queue = deque([([],d)])
+        
+        while queue:
+            node = queue.popleft()
+            
+                
+        
 if __name__=='__main__':
     
     import random
@@ -547,6 +562,6 @@ if __name__=='__main__':
     
     deck = shuffle()
     h = Hand(sorted(deck[:20]), [], deck[20])
-    print(h.orders)
-    print(h.coming.order)
+    print([c.hanzi for c in h.private])
+    print(h.coming.hanzi)
     print([res.__str__() for res in h.private_usage])

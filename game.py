@@ -7,7 +7,7 @@ Created on Thu Mar  8 18:04:09 2018
 from objects import Hand
 
 
-class Scenario:
+class Gamestate:
     """A moment during a game that is calling decision from players.
     
     Parameters
