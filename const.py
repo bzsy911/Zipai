@@ -39,7 +39,7 @@ class SCREEN:
     farewell = """
     * * * * * * * * * * * * * * * * * *
     *                                 *
-    *            Good Bye             *
+    *            Good Bye.            *
     *                                 *
     *  Hengyang Zipai, a Stella game. *
     *                                 *
@@ -54,16 +54,6 @@ class SCREEN:
     """
     
     
-
-
-
-
-
-
-
-
-
-
 
 class Functions:
 
@@ -139,6 +129,8 @@ class _GetchMacCarbon:
         else:
             msg = Carbon.Evt.GetNextEvent(0x0008)[1][1]
             return chr(msg)
+
+
 
 if __name__ == '__main__':
     print('Press a key')

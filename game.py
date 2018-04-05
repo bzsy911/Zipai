@@ -4,7 +4,42 @@ Created on Thu Mar  8 18:04:09 2018
 
 @author: PG738LD
 """
-from objects import Hand
+from objects import Hand, Pool
+
+
+class Game:
+    
+    def __init__(self, zhuang):
+        # list of gamestates
+        # judge object
+        self.zhuang = zhuang
+        self.states = [self.initial_state()]
+        
+    
+    
+    def initial_state(self):
+        pool = Pool()
+        cards_0, cards_1 = pool.deal_hand(2)
+        the_21 = pool.deal()
+
+        if self.zhuang == 0:
+            hand_hm = Hand(cards_0, [], the_21)
+            hand_cpt = Hand(cards_1, [], None)
+        else:
+            hand_hm = Hand(cards_1, [], None)
+            hand_cpt = Hand(cards_0, [], the_21)
+        
+        return Gamestate(hand_hm, hand_cpt, 0, 0, 1, [], pool)
+
+
+    def current_state(self):
+        return self.states[-1]
+    
+    def screen(self):
+        return self.current_state().screen()
+        
+
+
 
 
 class Gamestate:
@@ -24,7 +59,7 @@ class Gamestate:
         The player who is taking action right now
     table : list[Card]
         Cards played on discarded on the table
-    pool : list[Card]
+    pool : Pool
         Cards left in deck
 
     """
@@ -37,6 +72,29 @@ class Gamestate:
         self.table = table
         self.pool = pool
     
+    
+    def screen(self):
+        return """
+    Stella
+    [*******]
+    []
+     _________________________
+    |                         |
+    |                         |
+    |                         |
+    |                         |
+    |_________________________|
+            Card Left: {left}
+    
+    []
+    [{private}  {coming}]
+    Guest
+    """.format(left=self.pool.left(), 
+    private= self.hand_1.display_private(),
+    coming = self.hand_1.coming.hanzi 
+    )
+        
+        
     def next_(self, to_use):
         """Given a current scenario, the player decide to use the coming card
         or not to use it. Return the next scenario.
@@ -58,21 +116,21 @@ class Gamestate:
         print("Player "+str(self.turn)+" said: Bu Yao!")
         if self.source == 1 or (self.source == 2 and self.owner != self.turn):
             print("Player "+str(self.turn)+" to open a new card...")
-            new_card = self.pool[0]
+            new_card = self.pool.deal()
             print("the new card is..."+new_card.hanzi)
             print("Let's assume nothing happens for the moment...")
             print("Player "+str(self.turn)+": Please make a decision now.")
             hand_1 = Hand(self.hand_1.private, self.hand_2.public, new_card)
             hand_2 = Hand(self.hand_2.private, self.hand_2.public, new_card)
-            return Scenario(hand_1, hand_2, 2, self.turn, self.turn, 
-                            self.table+[new_card], self.pool[1:])
+            return Gamestate(hand_1, hand_2, 2, self.turn, self.turn, 
+                            self.table+[new_card], self.pool)
         else:
             print("It's player "+str(3-self.turn)+"'s turn to make a decision")
-            return Scenario(self.hand_1, self.hand_2, 2, self.owner, 
+            return Gamestate(self.hand_1, self.hand_2, 2, self.owner, 
                             3 - self.turn, self.table, self.pool)
     
     def play_(self, order):
-        #return Scenario()
+        #return Gamestate()
         pass
     
     def use_(self, orders):

@@ -8,9 +8,9 @@ Created on Mon Mar  5 10:15:29 2018
 """############################################################
    # Card     Set              Partial                        #
    #          |-- Pair         |-- Dandiao                    #
-   # Hand     |-- Shun         |-- PaShun                     #
+   # Pool     |-- Shun         |-- PaShun                     #
    #          |-- YiErSan      |-- PaMixed                    #
-   #          |-- Mixed        |-- Pa2710                     #
+   # Hand     |-- Mixed        |-- Pa2710                     #
    #          |-- ErQiShi      |-- Liangjia                   #
    #          |-- Ke                                          #
    #          |   |-- Xiao                                    #
@@ -22,8 +22,8 @@ Created on Mon Mar  5 10:15:29 2018
 """
 
 from const import HANZI, Functions
-
 from collections import deque
+import random
 
 
 class Card:
@@ -59,6 +59,46 @@ class Card:
     
     def __lt__(self, other):
         return self.order < other.order
+
+
+class Pool:
+    
+    def __init__(self):
+        self.cards = Pool._shuffle()
+    
+    def deal(self):
+        if len(self.cards) > 0:
+            return self.cards.pop()
+        else:
+            print("No card to deal!")
+            return None
+    
+    def deal_hand(self, n):
+        # deal 20 cards for n players
+        deals = []
+        for i in range(n):
+            draw = []
+            for j in range(20):
+                draw.append(self.deal())
+            deals.append(draw)
+        return deals
+        
+    
+    def left(self):
+        return len(self.cards)
+    
+    @staticmethod
+    def _shuffle():
+        deck = []
+        for i in range(10):
+            deck.extend([Card(i+1), Card(i+101)] * 4)
+        random.shuffle(deck)
+        return deck
+
+
+
+
+
 
 
 
@@ -473,11 +513,17 @@ class Hand:
         self.public = public
         self.coming = coming
         self.orders = [x.order for x in self.private]
-        self.dups_holding = self.orders.count(self.coming.order)
-        self.private_usage = self.check_private()
-        self.public_usage = self.check_public()
-        self.shout = self.shout()
+
+        if self.coming:
+            self.dups_holding = self.orders.count(self.coming.order)
+            self.private_usage = self.check_private()
+            self.public_usage = self.check_public()
         
+        self.shout = self.shout()
+    
+    
+    def display_private(self):
+        return ''.join([c.hanzi for c in self.private])
 
     def check_public(self):
         for i in range(len(self.public)):
@@ -529,7 +575,8 @@ class Hand:
     
     def shout(self):
         pass
-    
+
+"""  
     def group(self):
         # aim to list all posible combinations of private card
         # assume: no dia is in private. They should be dropped as soon as appear
@@ -546,22 +593,15 @@ class Hand:
         
         while queue:
             node = queue.popleft()
-            
+"""            
                 
         
 if __name__=='__main__':
-    
-    import random
-    
-    def shuffle():
-        deck = []
-        for i in range(10):
-            deck.extend([Card(i+1), Card(i+101)] * 4)
-        random.shuffle(deck)
-        return deck
-    
-    deck = shuffle()
-    h = Hand(sorted(deck[:20]), [], deck[20])
+        
+    deck = Pool()
+    deal_1 = deck.deal_hand(1)[0]
+    the_21 = deck.deal()
+    h = Hand(sorted(deal_1), [], the_21)
     print([c.hanzi for c in h.private])
     print(h.coming.hanzi)
     print([res.__str__() for res in h.private_usage])

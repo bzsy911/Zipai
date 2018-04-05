@@ -8,7 +8,9 @@ Created on Wed Apr  4 13:40:04 2018
 
 import sys, operator, os
 import random
-from utils import _Getch, SCREEN
+from const import _Getch, SCREEN
+from objects import Pool
+from game import Game
 
 class Zipai:
     """
@@ -17,25 +19,40 @@ class Zipai:
     Version = 0.1
     
     def __init__(self):
-        pass
+        self.games = []
     
     def start(self):
-        self._stdout(SCREEN.welcome)
-        inkey = self._input()
+        Zipai._stdout(SCREEN.welcome)
+        inkey = Zipai._input()
         if inkey == 27:
-            # exit
-            self._stdout(SCREEN.farewell)
-            sys.exit()
-        else:
-            # start game
-            self._stdout("Game is comming soon..")
-    
+            self.end()
+        inkey == -1
+        while inkey != ord('n'):
+            self.new_game()
+            print("\n\nthis hand seem's not very lovely.")
+            print("Do you want to new game?(any/n)")
+            
+            inkey = Zipai._input()
+        self.end()
 
-    def _stdout(self, screen):
+    
+    def end(self):
+        Zipai._stdout(SCREEN.farewell)
+        sys.exit()
+    
+    def new_game(self):
+        game = Game(0)
+        self.games.append(game)
+        Zipai._stdout(game.screen())
+        return game
+
+    @staticmethod
+    def _stdout(screen):
         os.system('cls')
         print(screen)
     
-    def _input(self):
+    @staticmethod
+    def _input():
         inkey = _Getch()
         return ord(inkey())     
 
