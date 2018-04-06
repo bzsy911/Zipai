@@ -30,7 +30,7 @@ class Zipai:
         while inkey != ord('n'):
             self.new_game()
             print("\n\nthis hand seem's not very lovely.")
-            print("Do you want to new game?(any/n)")
+            print("Do you want to new game? (any/n)")
             
             inkey = Zipai._input()
         self.end()
