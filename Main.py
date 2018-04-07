@@ -12,6 +12,7 @@ from const import _Getch, SCREEN
 from objects import Pool
 from game import Game
 
+
 class Zipai:
     """
     version 0.1
@@ -25,7 +26,7 @@ class Zipai:
         Zipai._stdout(SCREEN.welcome)
         inkey = Zipai._input()
         if inkey == 27:
-            self.end()
+            Zipai.end()
         inkey == -1
         while inkey != ord('n'):
             self.new_game()
@@ -33,10 +34,10 @@ class Zipai:
             print("Do you want to new game?(any/n)")
             
             inkey = Zipai._input()
-        self.end()
+        Zipai.end()
 
-    
-    def end(self):
+    @staticmethod
+    def end():
         Zipai._stdout(SCREEN.farewell)
         sys.exit()
     
@@ -55,7 +56,6 @@ class Zipai:
     def _input():
         inkey = _Getch()
         return ord(inkey())     
-
 
 
 if __name__ == '__main__':
