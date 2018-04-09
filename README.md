@@ -1,7 +1,7 @@
 # Zipai
-A toy implementation of Hengyang Zipai
+A toy implementation of Hengyang Zipai.
 
-## Version0.2
+## Version 0.2
 
 - Human Player play the first card
 - Flip cards until pool used up

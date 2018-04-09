@@ -5,57 +5,72 @@ Created on Wed Apr  4 13:40:04 2018
 @author: PG738LD
 """
 
-
 import sys, operator, os
 import random
 from const import _Getch, SCREEN
 from objects import Pool
 from game import Game
 
+
 class Zipai:
     """
-    version 0.1
+    version 0.2
     """
-    Version = 0.1
+    Version = 0.2
     
     def __init__(self):
         self.games = []
     
     def start(self):
-        Zipai._stdout(SCREEN.welcome)
-        inkey = Zipai._input()
-        if inkey == 27:
-            self.end()
-        inkey == -1
-        while inkey != ord('n'):
-            self.new_game()
-            print("\n\nthis hand seem's not very lovely.")
-            print("Do you want to new game? (any/n)")
-            
-            inkey = Zipai._input()
-        self.end()
+        Zipai.welcome()
 
+        in_key = -1
+        while in_key != ord('n'):
+            game = self.new_game(len(self.games) % 2+1)
+            game.deal_state()
+
+            print("Start a new game? (any/n)")
+            in_key = Zipai._input()
+
+        Zipai.end()
+
+    @staticmethod
+    def welcome():
+        """Welcome Page
+        Press any key to start the first game.
+        Press ESC to quit."""
+        Zipai._stdout(SCREEN.welcome)
+        in_key = Zipai._input()
+        if in_key == 27:
+            Zipai.end()
+        return
     
-    def end(self):
+    @staticmethod
+    def end():
+        """Farewell Page"""
         Zipai._stdout(SCREEN.farewell)
         sys.exit()
     
-    def new_game(self):
-        game = Game(0)
+    def new_game(self, n):
+        """Start a new game.
+        n: int, id of dealer, who won the last game."""
+        game = Game(n)
         self.games.append(game)
         Zipai._stdout(game.screen())
         return game
 
     @staticmethod
     def _stdout(screen):
-        os.system('cls')
+        if sys.platform == 'win32':
+            os.system('cls')
+        else:
+            os.system('clear')
         print(screen)
     
     @staticmethod
     def _input():
-        inkey = _Getch()
-        return ord(inkey())     
-
+        in_key = _Getch()
+        return ord(in_key())
 
 
 if __name__ == '__main__':

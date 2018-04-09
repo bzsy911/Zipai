@@ -8,28 +8,33 @@ from objects import Hand, Pool
 
 
 class Game:
-    
-    def __init__(self, zhuang):
-        # list of gamestates
+    """Procedure of a Game:
+    1. Deal - 发牌
+    2. Mandatory Sets - 有Dia落地
+    3. Dealer plays a card - 庄家出牌
+    4. Used & Play OR Pass and Flip - 吃打或过翻
+    5. Win or Draw - 胡牌或荒牌
+    6. Scores - 分数
+    """
+
+    def __init__(self, dealer):
+        # list of Gamestates
         # judge object
-        self.zhuang = zhuang
-        self.states = [self.initial_state()]
-        
-    
-    
-    def initial_state(self):
+        # dealer: int, id of dealer
+        # Human player's id is 1, Computer is 2.
+        self.dealer = dealer
+        self.states = [self.deal_state()]
+        self.winner = 2 - self.dealer
+
+    def deal_state(self):
         pool = Pool()
-        cards_0, cards_1 = pool.deal_hand(2)
+        cards_1, cards_2 = pool.deal_hand(2)
         the_21 = pool.deal()
 
-        if self.zhuang == 0:
-            hand_hm = Hand(cards_0, [], the_21)
-            hand_cpt = Hand(cards_1, [], None)
-        else:
-            hand_hm = Hand(cards_1, [], None)
-            hand_cpt = Hand(cards_0, [], the_21)
-        
-        return Gamestate(hand_hm, hand_cpt, 0, 0, 1, [], pool)
+        hand_hm = Hand(cards_1, [], the_21)
+        hand_cpt = Hand(cards_2, [], the_21)
+
+        state = Gamestate(hand_hm, hand_cpt, 0, 0, self.dealer, [], pool)
 
 
     def current_state(self):
@@ -38,9 +43,6 @@ class Game:
     def screen(self):
         return self.current_state().screen()
         
-
-
-
 
 class Gamestate:
     """A moment during a game that is calling decision from players.
@@ -52,9 +54,9 @@ class Gamestate:
     hand_2 : Hand
         Hand of player 2
     source : int, 1 or 2
-        1 for played card, 2 for openned card
+        1 for played card, 2 for opened card
     owner : int, 1 or 2
-        The player who just played or openned
+        The player who just played or opened
     turn : int, 1 or 2
         The player who is taking action right now
     table : list[Card]
@@ -71,30 +73,41 @@ class Gamestate:
         self.turn = turn
         self.table = table
         self.pool = pool
-    
-    
+
     def screen(self):
+        cpt_name = 'Stella'
+        cpt_private = '*' * 20
+        cpt_21 = '' if self.turn == 1 else ' {the_21}'.format(the_21=self.hand_2.coming.hanzi)
+        cpt_public = ''
+
+        hm_private = self.hand_1.display_private()
+        hm_coming = '' if self.turn == 2 else ' {the_21}'.format(the_21=self.hand_1.coming.hanzi)
+        hm_name = 'Guest'
+
         return """
-    Stella
-    [*******]
-    []
+    {cpt_name}
+    [{cpt_private}{cpt_21}]
+    [{cpt_public}]
      _________________________
     |                         |
     |                         |
     |                         |
     |                         |
     |_________________________|
-            Card Left: {left}
+          Card Left: {left}
     
     []
-    [{private}  {coming}]
-    Guest
-    """.format(left=self.pool.left(), 
-    private= self.hand_1.display_private(),
-    coming = self.hand_1.coming.hanzi 
-    )
-        
-        
+    [{hm_private}{hm_coming}]
+    {hm_name}
+    """.format(cpt_name=cpt_name,
+               cpt_private=cpt_private,
+               cpt_21=cpt_21,
+               cpt_public=cpt_public,
+               left=self.pool.left(),
+               hm_private=hm_private,
+               hm_coming=hm_coming,
+               hm_name=hm_name)
+
     def next_(self, to_use):
         """Given a current scenario, the player decide to use the coming card
         or not to use it. Return the next scenario.
@@ -122,18 +135,17 @@ class Gamestate:
             print("Player "+str(self.turn)+": Please make a decision now.")
             hand_1 = Hand(self.hand_1.private, self.hand_2.public, new_card)
             hand_2 = Hand(self.hand_2.private, self.hand_2.public, new_card)
-            return Gamestate(hand_1, hand_2, 2, self.turn, self.turn, 
-                            self.table+[new_card], self.pool)
+            return Gamestate(hand_1, hand_2, 2, self.turn, self.turn,
+                             self.table+[new_card], self.pool)
         else:
             print("It's player "+str(3-self.turn)+"'s turn to make a decision")
-            return Gamestate(self.hand_1, self.hand_2, 2, self.owner, 
-                            3 - self.turn, self.table, self.pool)
+            return Gamestate(self.hand_1, self.hand_2, 2, self.owner,
+                             3 - self.turn, self.table, self.pool)
     
     def play_(self, order):
-        #return Gamestate()
+        # return Gamestate()
         pass
     
     def use_(self, orders):
         pass
-    
-    
+
