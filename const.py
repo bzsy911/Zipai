@@ -68,17 +68,15 @@ class Functions:
     def take_out(ls, pattern):
         return list((Counter(ls)-Counter(pattern)).elements())
         
-        
-        
+
 class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
+
     def __init__(self):
         try:
             self.impl = _GetchWindows()
         except ImportError:
             try:
-                self.impl = _GetchMacCarbon()
+                self.impl = _GetchMac()
             except AttributeError:
                 self.impl = _GetchUnix()
 
@@ -111,24 +109,14 @@ class _GetchUnix:
         return ch
 
 
-class _GetchMacCarbon:
-    """
-    A function which returns the current ASCII key that is down;
-    if no ASCII key is down, the null string is returned.  The
-    page http://www.mactech.com/macintosh-c/chap02-1.html was
-    very helpful in figuring out how to do this.
-    """
+class _GetchMac:
     def __init__(self):
-        import Carbon
-        Carbon.Evt
-    
+        import getch
+
     def __call__(self):
-        import Carbon
-        if Carbon.Evt.EventAvail(0x0008)[0]==0: # 0x0008 is the keyDownMask
-            return ''
-        else:
-            msg = Carbon.Evt.GetNextEvent(0x0008)[1][1]
-            return chr(msg)
+        import getch
+        return getch.getch()
+
 
 
 
