@@ -1,11 +1,18 @@
 # Zipai
 A toy implementation of Hengyang Zipai
 
-## Verson 0.1
+## Version0.2
 
-- Start game
+- Human Player play the first card
+- Flip cards until pool used up
+- Automatic Dia, Xiao, Pao
+- Alternating Zhuang for following games
+
+
+## Version 0.1
+
+- Start Game
 - Welcome Page
 - Distribute Hands
-- Tell if this hand wins
 - Ask if user want to start a new game
 - Exit Game
