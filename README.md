@@ -6,7 +6,7 @@ A toy implementation of Hengyang Zipai.
 - Human Player play the first card
 - Flip cards until pool used up
 - Automatic Dia, Xiao, Pao
-- Alternating Zhuang for following games
+- Alternating dealer for following games
 
 
 ## Version 0.1

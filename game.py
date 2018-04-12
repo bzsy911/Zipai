@@ -5,6 +5,7 @@ Created on Thu Mar  8 18:04:09 2018
 @author: PG738LD
 """
 from objects import Hand, Pool
+from const import Functions
 
 
 class Game:
@@ -35,6 +36,16 @@ class Game:
         hand_cpt = Hand(cards_2, [], the_21)
 
         state = Gamestate(hand_hm, hand_cpt, 0, 0, self.dealer, [], pool)
+        Functions.stdout(state.screen())
+        return state
+
+    def play_state(self):
+        # display card choices
+        # key in left or right to choose card
+        # key in enter/space to play card
+        # played card show on table
+        # hand over to other player
+        pass
 
 
     def current_state(self):

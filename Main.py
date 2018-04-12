@@ -5,10 +5,8 @@ Created on Wed Apr  4 13:40:04 2018
 @author: PG738LD
 """
 
-import sys, operator, os
-import random
-from const import _Getch, SCREEN
-from objects import Pool
+import sys
+from const import Functions, SCREEN
 from game import Game
 
 
@@ -30,7 +28,7 @@ class Zipai:
             game.deal_state()
 
             print("Start a new game? (any/n)")
-            in_key = Zipai._input()
+            in_key = Functions.stdin()
 
         Zipai.end()
 
@@ -39,8 +37,8 @@ class Zipai:
         """Welcome Page
         Press any key to start the first game.
         Press ESC to quit."""
-        Zipai._stdout(SCREEN.welcome)
-        in_key = Zipai._input()
+        Functions.stdout(SCREEN.welcome)
+        in_key = Functions.stdin()
         if in_key == 27:
             Zipai.end()
         return
@@ -48,7 +46,7 @@ class Zipai:
     @staticmethod
     def end():
         """Farewell Page"""
-        Zipai._stdout(SCREEN.farewell)
+        Functions.stdout(SCREEN.farewell)
         sys.exit()
     
     def new_game(self, n):
@@ -56,21 +54,7 @@ class Zipai:
         n: int, id of dealer, who won the last game."""
         game = Game(n)
         self.games.append(game)
-        Zipai._stdout(game.screen())
         return game
-
-    @staticmethod
-    def _stdout(screen):
-        if sys.platform == 'win32':
-            os.system('cls')
-        else:
-            os.system('clear')
-        print(screen)
-    
-    @staticmethod
-    def _input():
-        in_key = _Getch()
-        return ord(in_key())
 
 
 if __name__ == '__main__':

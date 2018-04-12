@@ -6,6 +6,7 @@ Created on Mon Mar  5 11:06:00 2018
 """
 
 from collections import Counter 
+import sys, os
 
 HANZI = {
          1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '七', 
@@ -23,7 +24,7 @@ class SCREEN:
     *                                 *
     *    Welcome to Hengyang Zipai    *
     *                                 *
-    *           version 0.1           *
+    *           version 0.2           *
     *                                 *
     * * * * * * * * * * * * * * * * * *
     
@@ -53,80 +54,53 @@ class SCREEN:
              bzsy911@gmail.com
     """
     
-    
 
 class Functions:
 
+    @staticmethod
     def explode(node):
         res = []
         for pattern in patterns:
             pass
         pass
-            
-    
-    
+
+    @staticmethod
     def take_out(ls, pattern):
         return list((Counter(ls)-Counter(pattern)).elements())
+
+    @staticmethod
+    def stdout(screen):
+        if sys.platform == 'win32':
+            os.system('cls')
+        else:
+            os.system('clear')
+        print(screen)
+
+    @staticmethod
+    def stdin():
+        in_key = _Getch()
+        return ord(in_key())
         
 
 class _Getch:
 
     def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
+        if sys.platform == 'win32':
+            import msvcrt
+            self.impl = msvcrt.getch()
+        elif sys.platform == 'darwin':
+            import getch
+            self.impl = getch.getch()
+        else:
+            import tty, termios
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
             try:
-                self.impl = _GetchMac()
-            except AttributeError:
-                self.impl = _GetchUnix()
+                tty.setraw(sys.stdin.fileno())
+                ch = sys.stdin.read(1)
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            self.impl = ch
 
     def __call__(self): 
-        return self.impl()
-
-
-class _GetchWindows:
-    def __init__(self):
-        import msvcrt
-
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getch()
-
-
-class _GetchUnix:
-    def __init__(self):
-        import tty, sys, termios 
-        
-    def __call__(self):
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
-
-
-class _GetchMac:
-    def __init__(self):
-        import getch
-
-    def __call__(self):
-        import getch
-        return getch.getch()
-
-
-
-
-if __name__ == '__main__':
-    print('Press a key')
-    inkey = _Getch()
-    while True:
-        k = inkey()
-        print(ord(k))
-        if ord(k) == 27:
-            break
-        print('you pressed ', str(k))
-    print('you pressed', k)
+        return self.impl
