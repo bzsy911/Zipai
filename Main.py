@@ -24,8 +24,9 @@ class Zipai:
 
         in_key = -1
         while in_key != ord('n'):
-            game = self.new_game(len(self.games) % 2+1)
-            game.deal_state()
+            game = self.new_game(len(self.games) % 2+1) # deal state generated and printed during initialization.
+            if game.dealer == 1:
+                game.play_state()
 
             print("Start a new game? (any/n)")
             in_key = Functions.stdin()

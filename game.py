@@ -34,9 +34,7 @@ class Game:
 
         hand_hm = Hand(cards_1, [], the_21)
         hand_cpt = Hand(cards_2, [], the_21)
-
         state = Gamestate(hand_hm, hand_cpt, 0, 0, self.dealer, [], pool)
-        Functions.stdout(state.screen())
         return state
 
     def play_state(self):
@@ -45,14 +43,22 @@ class Game:
         # key in enter/space to play card
         # played card show on table
         # hand over to other player
-        pass
+        state = self.current_state()
+        length = 21 if state.turn == 1 else 20
+        pick_pos = state.pick_left_right(1, length)
 
+        played_card = state.hand_1.private.pop(pick_pos)
+        hand_hm = Hand(state.hand_1.private+[state.hand_1.coming], [], played_card)
+        hand_cpt = Hand(state.hand_2.private, [], played_card)
+        new_state = Gamestate(hand_hm, hand_cpt, 1, 1, 2, [played_card], state.pool)
+        self.states.append(new_state)
+        return new_state
 
     def current_state(self):
         return self.states[-1]
     
     def screen(self):
-        return self.current_state().screen()
+        return self.current_state().screen
         
 
 class Gamestate:
@@ -84,8 +90,9 @@ class Gamestate:
         self.turn = turn
         self.table = table
         self.pool = pool
+        self.print_screen()
 
-    def screen(self):
+    def print_screen(self, pointing_pos=None):
         cpt_name = 'Stella'
         cpt_private = '*' * 20
         cpt_21 = '' if self.turn == 1 else ' {the_21}'.format(the_21=self.hand_2.coming.hanzi)
@@ -95,12 +102,16 @@ class Gamestate:
         hm_coming = '' if self.turn == 2 else ' {the_21}'.format(the_21=self.hand_1.coming.hanzi)
         hm_name = 'Guest'
 
-        return """
+        table = ''.join([x.hanzi for x in self.table]) + ' '*(25-len(self.table)) + '|'
+
+        pointer = ' '*pointing_pos + '^' if pointing_pos else ''
+
+        screen = """
     {cpt_name}
     [{cpt_private}{cpt_21}]
     [{cpt_public}]
      _________________________
-    |                         |
+    |{table}
     |                         |
     |                         |
     |                         |
@@ -109,6 +120,7 @@ class Gamestate:
     
     []
     [{hm_private}{hm_coming}]
+    {pointer}
     {hm_name}
     """.format(cpt_name=cpt_name,
                cpt_private=cpt_private,
@@ -117,7 +129,26 @@ class Gamestate:
                left=self.pool.left(),
                hm_private=hm_private,
                hm_coming=hm_coming,
-               hm_name=hm_name)
+               hm_name=hm_name,
+               pointer=pointer,
+               table=table)
+
+        self.screen = screen
+        Functions.stdout(screen)
+        return screen
+
+    def pick_left_right(self, pos, length):
+        self.print_screen(pos)
+        while True:
+            key_in = Functions.stdin()
+            if key_in == 13 or key_in == 32:
+                return pos
+            else:
+                if pos > 1 and key_in == 75:
+                    pos -= 1
+                elif pos < length and key_in == 77:
+                    pos += 1
+            self.print_screen(pos)
 
     def next_(self, to_use):
         """Given a current scenario, the player decide to use the coming card

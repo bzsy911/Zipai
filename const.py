@@ -104,3 +104,11 @@ class _Getch:
 
     def __call__(self): 
         return self.impl
+
+
+if __name__ == '__main__':
+    while True:
+        key_in = Functions.stdin()
+        print(key_in)
+        if key_in == 13 or key_in == 32:
+            break
