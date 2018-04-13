@@ -3,10 +3,10 @@ A toy implementation of Hengyang Zipai.
 
 ## Version 0.2
 
+- Alternating dealer for each games
 - Human Player play the first card
-- Flip cards until pool used up
+- Pass and open cards until pool used up
 - Automatic Dia, Xiao, Pao
-- Alternating dealer for following games
 
 
 ## Version 0.1
