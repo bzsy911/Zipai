@@ -17,6 +17,9 @@ HANZI = {
 
 patterns = ["shun", "2710", "mixed", "liangjia", "pa270", "pashun", "pamixed"]
 
+WIN_KEYMAP = {27: 'esc', 110: 'n', 72: 'up', 80: 'down', 77: 'right', 75: 'left', 13: 'enter', 32: 'space'}
+MAC_KEYMAP = {27: 'esc', 110: 'n', 65: 'up', 66: 'down', 67: 'right', 68: 'left', 10: 'enter', 32: 'space'}
+
 
 class SCREEN:
     welcome = """
@@ -79,8 +82,21 @@ class Functions:
     @staticmethod
     def stdin():
         in_key = _Getch()
-        return ord(in_key())
-        
+        key = ord(in_key())
+        if sys.platform == 'win32':
+            try:
+                return WIN_KEYMAP[key]
+            except KeyError:
+                return 'any'
+        if sys.platform == 'darwin':
+            try:
+                return MAC_KEYMAP[key]
+            except KeyError:
+                return 'any'
+        else:
+            # Linux case to be implemented
+            return 'any'
+
 
 class _Getch:
 
@@ -110,5 +126,5 @@ if __name__ == '__main__':
     while True:
         key_in = Functions.stdin()
         print(key_in)
-        if key_in == 13 or key_in == 32:
+        if key_in == 'enter' or key_in == 'space':
             break

@@ -26,8 +26,8 @@ class Zipai:
                           'cpt_name': 'Stella'}
 
     def start(self):
-        in_key = -1
-        while in_key != ord('n'):
+        in_key = ''
+        while in_key != 'n':
             self.user_info['round'] = len(self.games) + 1
             game = self.new_game(len(self.games) % 2+1)
             for _ in game:
@@ -45,7 +45,7 @@ class Zipai:
         Press ESC to quit."""
         Functions.stdout(SCREEN.welcome)
         in_key = Functions.stdin()
-        if in_key == 27:
+        if in_key == 'esc':
             Zipai.end()
         return
     

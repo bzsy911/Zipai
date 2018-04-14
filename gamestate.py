@@ -109,14 +109,14 @@ class Gamestate:
         self.print_screen(pos)
         while True:
             key_in = Functions.stdin()
-            if key_in == 13 or key_in == 32:
+            if key_in == 'enter' or key_in == 'space':
                 return pos
             else:
-                if pos > 1 and key_in == 75:
+                if pos > 1 and key_in == 'left':
                     pos -= 1
                     if pos == 21:
                         pos -= 1
-                elif pos < length and key_in == 77:
+                elif pos < length and key_in == 'right':
                     pos += 1
                     if pos == 21:
                         pos += 1

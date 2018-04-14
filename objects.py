@@ -526,6 +526,13 @@ class Hand:
     def display_private(self):
         return ''.join([c.hanzi for c in self.private])
 
+
+
+
+
+
+
+
     def check_public(self):
         for i in range(len(self.public)):
             if [x.order for x in self.public[i]].count(self.coming.order) == 3:
@@ -597,7 +604,7 @@ class Hand:
 """            
                 
         
-if __name__=='__main__':
+if __name__ == '__main__':
         
     deck = Pool()
     deal_1 = deck.deal_hand(1)[0]
