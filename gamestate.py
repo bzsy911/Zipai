@@ -46,10 +46,10 @@ class Gamestate:
         self.pool = pool
 
     def screen(self, pointing_pos=None):
-        cpt_dealer = '[Dealer]' if self.game_info['dealer'] == 2 else ''
-        hm_dealer = '[Dealer]' if self.game_info['dealer'] == 1 else ''
+        cpt_dealer = '[庄]' if self.game_info['dealer'] == 2 else ''
+        hm_dealer = '[庄]' if self.game_info['dealer'] == 1 else ''
 
-        cpt_private = '*' * 20
+        cpt_private = '* ' * 20
         cpt_coming = '' if self.turn == 1 else ' {coming}'.format(coming=self.hand_2.coming.hanzi)
         cpt_public = ''
 
@@ -57,30 +57,31 @@ class Gamestate:
         hm_public = ''
         hm_coming = '' if self.turn == 2 else ' {coming}'.format(coming=self.hand_1.coming.hanzi)
 
-        table_cpt = ''.join([x.hanzi for x in self.table[0]]) + ' ' * (23 - len(self.table[0])) + '|'
-        table_hm = ''.join([x.hanzi for x in self.table[1]]) + ' ' * (23 - len(self.table[1])) + '|'
+        table_cpt = ''.join([x.hanzi for x in self.table[0]]) + ' ' * (43 - 2*len(self.table[0])) + '|'
+        table_hm = ''.join([x.hanzi for x in self.table[1]]) + ' ' * (43 - 2*len(self.table[1])) + '|'
 
-        pointer = ' ' * pointing_pos + '^' if pointing_pos else ''
+        pointer = '  ' * pointing_pos + '^' if pointing_pos else ''
 
         screen = """
         Game: {round}
         
-        {cpt_name} {cpt_dealer}
-        [{cpt_private}{cpt_coming}]
-        [{cpt_public}]
-         __________________________
-        |                          |
+                   {cpt_name} {cpt_dealer}
+        
+           [{cpt_private}{cpt_coming}]
+           [{cpt_public}]
+         ______________________________________________
+        |                                              |
         |   {table_cpt}
-        |                          |
-        |                          |
+        |                                              |
+        |                                              |
         |   {table_hm}
-        |__________________________|
-              Card Left: {left}
+        |______________________________________________|
+                         Card Left: {left}
     
-        [{hm_public}]
-        [{hm_private}{hm_coming}]
-        {pointer}
-        {hm_name} {hm_dealer}
+           [{hm_public}]
+           [{hm_private}{hm_coming}]
+            {pointer}
+                   {hm_name} {hm_dealer}
         """.format(round=self.game_info['round'],
                    cpt_name=self.game_info['cpt_name'],
                    cpt_dealer=cpt_dealer,
