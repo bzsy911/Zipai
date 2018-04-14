@@ -82,8 +82,7 @@ class Pool:
                 draw.append(self.deal())
             deals.append(draw)
         return deals
-        
-    
+
     def left(self):
         return len(self.cards)
     
@@ -501,7 +500,7 @@ class Hand:
     dups_holding : int
         Number of same cards as coming holding in hand privately
     private_usage : list[Set]
-        List of possiblities of using the coming card, all possiblities are 
+        List of possibilities of using the coming card, all possibilities are
         considered, regardless of rules
     public_usage : [int] (current inconsistent with private_usage here)
         The index in public of the Set that can pao(dia) the coming card
@@ -521,9 +520,18 @@ class Hand:
         
         self.shout = self.shout()
     
-    
+    def replace_coming(self, card):
+        return Hand(self.private, self.public, card)
+
     def display_private(self):
         return ''.join([c.hanzi for c in self.private])
+
+
+
+
+
+
+
 
     def check_public(self):
         for i in range(len(self.public)):
@@ -596,7 +604,7 @@ class Hand:
 """            
                 
         
-if __name__=='__main__':
+if __name__ == '__main__':
         
     deck = Pool()
     deal_1 = deck.deal_hand(1)[0]
