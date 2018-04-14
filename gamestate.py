@@ -65,7 +65,7 @@ class Gamestate:
         screen = """
         Game: {round}
         
-                   {cpt_name} {cpt_dealer}
+                       {cpt_name} {cpt_dealer}
         
            [{cpt_private}{cpt_coming}]
            [{cpt_public}]
@@ -80,8 +80,8 @@ class Gamestate:
     
            [{hm_public}]
            [{hm_private}{hm_coming}]
-            {pointer}
-                   {hm_name} {hm_dealer}
+          {pointer}
+                       {hm_name} {hm_dealer}
         """.format(round=self.game_info['round'],
                    cpt_name=self.game_info['cpt_name'],
                    cpt_dealer=cpt_dealer,
