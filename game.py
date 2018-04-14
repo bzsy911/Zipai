@@ -37,7 +37,7 @@ class Game:
         self.current_state = self.current_state.next_()
         self.current_state.print_screen()
         self.states.append(self.current_state)
-        if not self.current_state.pool.cards:
+        if self.current_state.end:
             raise StopIteration
         return
 

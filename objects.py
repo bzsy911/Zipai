@@ -490,9 +490,7 @@ class Hand:
         Cards holding in hand
     public : list[Set]
         Sets placed on table
-    coming : Card
-        The new card taken from card pool, or played from hand, by a player
-    
+
     Attributes
     ----------
     orders : list[int]
@@ -507,21 +505,18 @@ class Hand:
     shout : TBD
         The corresponding slang to shout out after decision
     """
-    def __init__(self, private, public, coming):
+    def __init__(self, private, public):
         self.private = sorted(private)
         self.public = public
-        self.coming = coming
         self.orders = [x.order for x in self.private]
 
-        if self.coming:
-            self.dups_holding = self.orders.count(self.coming.order)
-            self.private_usage = self.check_private()
-            self.public_usage = self.check_public()
-        
-        self.shout = self.shout()
-    
-    def replace_coming(self, card):
-        return Hand(self.private, self.public, card)
+        # if self.coming:
+        #     self.dups_holding = self.orders.count(self.coming.order)
+        #     self.private_usage = self.check_private()
+        #     self.public_usage = self.check_public()
+
+    # def replace_coming(self, card):
+    #     return Hand(self.private, self.public, card)
 
     def display_private(self):
         return ''.join([c.hanzi for c in self.private])
@@ -529,10 +524,7 @@ class Hand:
 
 
 
-
-
-
-
+"""
     def check_public(self):
         for i in range(len(self.public)):
             if [x.order for x in self.public[i]].count(self.coming.order) == 3:
@@ -584,7 +576,7 @@ class Hand:
     def shout(self):
         pass
 
-"""  
+
     def group(self):
         # aim to list all posible combinations of private card
         # assume: no dia is in private. They should be dropped as soon as appear
