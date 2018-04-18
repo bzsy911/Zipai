@@ -147,9 +147,9 @@ class Gamestate:
         self.print_screen(pointing_actions=pos, action_choice=icons)
         while True:
             key_in = Functions.stdin()
-            if key_in == 'esc':
-                import sys
-                sys.exit()
+            # if key_in == 'esc':
+            #     import sys
+            #     sys.exit()
             if key_in == 'enter' or key_in == 'space':
                 return icons[pos]
             else:
