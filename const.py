@@ -9,11 +9,11 @@ from collections import Counter
 import sys, os
 
 HANZI = {
-         1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '七', 
-         8: '八', 9: '九', 10: '十', 101: '壹', 102: '贰', 103: '叁', 
-         104: '肆', 105: '伍', 106: '陆', 107: '柒', 108: '捌', 109: '玖',
-         110: '拾'   
-        }
+    1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '七', 8: '八', 9: '九', 10: '十',
+    101: '壹', 102: '贰', 103: '叁', 104: '肆', 105: '伍', 106: '陆', 107: '柒', 108: '捌', 109: '玖', 110: '拾',
+    'guo': '过', 'qia': '吃', 'beng': '碰', 'xiao': '笑', 'dia': '掉', 'pao': '跑', 'fu': '胡'}
+
+ACTIONS = {0: 'guo', 1: 'qia', 2: 'beng', 3: 'xiao', 4: 'dia', 5: 'pao', 6: 'fu'}
 
 patterns = ["shun", "2710", "mixed", "liangjia", "pa270", "pashun", "pamixed"]
 
@@ -27,7 +27,7 @@ class SCREEN:
     *                                 *
     *    Welcome to Hengyang Zipai    *
     *                                 *
-    *           version 0.2           *
+    *           version 0.3           *
     *                                 *
     * * * * * * * * * * * * * * * * * *
     
@@ -70,6 +70,21 @@ class Functions:
     @staticmethod
     def take_out(ls, pattern):
         return list((Counter(ls)-Counter(pattern)).elements())
+
+    @staticmethod
+    def has_n(ls, n):
+        for (ele, cnt) in Counter(ls).items():
+            if cnt == n:
+                return ele
+        return None
+
+
+
+
+
+
+
+
 
     @staticmethod
     def stdout(screen):

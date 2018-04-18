@@ -22,6 +22,8 @@ class Zipai:
         Functions.stdout('')
         prompt_name = '\n'*3 + ' '*10 + 'What\'s you name?\n' + ' '*13
         hm_name = input(prompt_name)
+        if not hm_name:
+            hm_name = 'Guest'
         self.user_info = {'hm_name': hm_name,
                           'cpt_name': 'Stella'}
 
