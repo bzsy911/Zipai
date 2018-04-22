@@ -196,9 +196,6 @@ class HmOpenState(Gamestate):
                                  self.source, 2, 1, self.table, None, self.pool)
 
 
-
-
-
 class HmPlayState(Gamestate):
 
     def __init__(self, game_info, hand_1, hand_2, source, owner, table, pool):

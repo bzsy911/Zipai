@@ -27,7 +27,7 @@ class SCREEN:
     *                                 *
     *    Welcome to Hengyang Zipai    *
     *                                 *
-    *           version 0.2           *
+    *           version 0.3           *
     *                                 *
     * * * * * * * * * * * * * * * * * *
     
