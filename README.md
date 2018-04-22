@@ -1,6 +1,16 @@
 # Zipai
 A toy implementation of Hengyang Zipai.
 
+## Version 0.3
+
+- Auto-check Dia at the beginning of game
+- Group private cards to make Ke reserved
+- Removed number of left cards
+- Choose card to play
+- Computer play randomly
+- Auto-check Dia, Pao, and Xiao
+- Actively Beng
+
 ## Version 0.2
 
 - Escalate user info out of game states

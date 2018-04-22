@@ -95,12 +95,6 @@ class Pool:
         return deck
 
 
-
-
-
-
-
-
 class Set:
     """A (valid) Set is a group of 2, 3, or 4 cards that is allowed to appear
     (as a group) in a winning hand. Types of Sets are Pair, Shun(normal, 123),
@@ -142,7 +136,8 @@ class Set:
                     [']']
                     )
 
-
+    def __lt__(self, other):
+        return self.points > other.points
 class Pair(Set):
     """Just a pair.
     
@@ -155,8 +150,6 @@ class Pair(Set):
     """
     def __init__(self, order, qia=-1):
         super().__init__([order]*2, qia)
-
-
 class Shun(Set):
     """A length 3 set that contains consecutive numbers from 234 to 8910. 
     
@@ -169,8 +162,6 @@ class Shun(Set):
     """
     def __init__(self, mid, qia=-1):
         super().__init__([mid-1, mid, mid+1], qia)
-
-
 class YiErSan(Shun):
     """A special Shun [1,2,3].
     
@@ -184,8 +175,6 @@ class YiErSan(Shun):
     def __init__(self, tp, qia=-1):
         super().__init__(2+100*tp, qia)
         self.points = 3 + 3*tp
-
-
 class Mixed(Set):
     """A length 3 set that contains a single number but mixed types.
     
@@ -200,8 +189,6 @@ class Mixed(Set):
     """
     def __init__(self, num, two_caps, qia=-1):
         super().__init__([num, num+100*two_caps, num+100], qia)
-
-
 class ErQiShi(Set):
     """A special Set [2, 7, 10].
     
@@ -215,8 +202,6 @@ class ErQiShi(Set):
     def __init__(self, tp, qia=-1):
         super().__init__([x+100*tp for x in [2, 7, 10]], qia)
         self.points = 3 + 3*tp
-
-
 class Ke(Set):
     """A Set that contains 3 identical cards.
     
@@ -229,11 +214,10 @@ class Ke(Set):
     """
     def __init__(self, order, qia=-1):
         super().__init__([order]*3, qia)
+        self.order = order
     
     def gang(self):
         return Gang(self.orders[0])
-        
-
 class Xiao(Ke):
     """A special Ke that qia == 0.
     
@@ -245,20 +229,18 @@ class Xiao(Ke):
     def __init__(self, order):
         super().__init__(order, 0)
         self.points = 3 + 3*(order//100)
-    
+
     def gang(self, zimo=False):
         if zimo:
-            return Dia(self.orders[0])
+            return Dia(self.order)
         else:
-            return Pao(self.orders[0], 1)
+            return Pao(self.order, 1)
         
     def dia(self):
         return self.gang(True)
     
     def pao(self):
         return self.gang()
-    
-
 class Beng(Ke):
     """A special Ke that qia > 0.
     
@@ -270,14 +252,13 @@ class Beng(Ke):
     def __init__(self, order):
         super().__init__(order, 3)
         self.points = 1 + 2*(order//100)
+
     
     def gang(self, zimo=False):
         return Pao(self.orders[0], 2-1*zimo)
     
     def pao(self):
         return self.gang()
-
-
 class Gang(Set):
     """A Set that contains 4 identical cards.
     
@@ -290,8 +271,7 @@ class Gang(Set):
     """
     def __init__(self, order, qia=-1):
         super().__init__([order]*4, qia)
-
-
+        self.order = order
 class Dia(Gang):
     """A special Gang that qia == 0
     
@@ -303,8 +283,6 @@ class Dia(Gang):
     def __init__(self, order):
         super().__init__(order, 0)
         self.points = 9 + 3*(order//100)
-
-
 class Pao(Gang):
     """A special Gang that qia > 0
     
@@ -313,10 +291,10 @@ class Pao(Gang):
     order : int
         The order of any card in this Dia.
     num_zimo : int
-        Number of Zimo Card in this Pao, 1 or 2
+        Number of qia Card in this Pao, 1 or 2
     """
-    def __init__(self, order, num_zimo):
-        super().__init__(order, 4-num_zimo)
+    def __init__(self, order, num_qia):
+        super().__init__(order, 4-num_qia)
         self.points = 6 + 3*(order//100)
     
     def __str__(self):
@@ -325,7 +303,6 @@ class Pao(Gang):
         else:
             return ('[' + self.cards[0].__str__()*2 + '+' + 
                       self.cards[0].__str__()*2 + ']')
-
 
 
 class Partial:
@@ -357,8 +334,6 @@ class Partial:
     
     def qia(self, last):
         return Set(self.orders+[last], self.length+1)
-
-
 class Dandiao(Partial):
     """Just a single card.
     
@@ -372,8 +347,6 @@ class Dandiao(Partial):
     
     def fu(self):
         return Pair(self.orders[0], 2)
-        
-
 class Liangjia(Partial):
     """Two identical cards holding in hand.
     
@@ -395,9 +368,6 @@ class Liangjia(Partial):
         return Mixed(self.cards[0].num, 
                      self.cards[0].tp, 
                      1 if self.cards[0].tp else 3)
-
-
-
 class PaShun(Partial):
     """Two different cards holding in hand, waiting for the third.
     
@@ -441,8 +411,6 @@ class PaShun(Partial):
         else:
             return Shun(self.cards[0].order, 1) if third%100!=1 else \
             YiErSan(self.cards[0].tp, 1)
-
-
 class PaMixed(Partial):
     """Two cards with same number but different types.
     
@@ -456,8 +424,6 @@ class PaMixed(Partial):
     
     def qia(self, tp):
         return Mixed(self.cards[0].num, tp, 2)
-
-
 class Pa2710(Partial):
     """Two of 2, 7, and 10, waiting the third.
     
@@ -486,14 +452,14 @@ class Hand:
     
     Parameters
     ----------
-    private : list[Card]
-        Cards holding in hand
+    private : [list[Xiao], list[Card]]
+        Cards holding in hand that can be played
     public : list[Set]
         Sets placed on table
 
     Attributes
     ----------
-    orders : list[int]
+    orders_private : [list[int], list[int]]
         The corresponding orders of private cards
     dups_holding : int
         Number of same cards as coming holding in hand privately
@@ -506,22 +472,97 @@ class Hand:
         The corresponding slang to shout out after decision
     """
     def __init__(self, private, public):
-        self.private = sorted(private)
+        self.private = private
         self.public = public
-        self.orders = [x.order for x in self.private]
-
-        # if self.coming:
-        #     self.dups_holding = self.orders.count(self.coming.order)
-        #     self.private_usage = self.check_private()
-        #     self.public_usage = self.check_public()
-
-    # def replace_coming(self, card):
-    #     return Hand(self.private, self.public, card)
+        self.orders = [[x.order for x in self.private[0]], [x.order for x in self.private[1]]]
 
     def display_private(self):
-        return ''.join([c.hanzi for c in self.private])
+        return ''.join(xiao.__str__()[1:-1] for xiao in self.private[0]) + ''.join([c.hanzi for c in sorted(self.private[1])])
 
+    def display_public(self):
+        return ''.join([s.__str__() for s in self.public])
 
+    def init_sort(self):
+        self._orig_dia()
+        self._sort()
+
+    def _orig_dia(self):
+        while Functions.has_n(self.orders[1], 4):
+            dia = Functions.has_n(self.orders[1], 4)
+            self.public.append(Dia(dia))
+            self.orders[1] = sorted(Functions.take_out(self.orders[1], {dia: 4}))
+            self.private[1] = sorted([Card(x) for x in self.orders[1]])
+
+    def _sort(self):
+        while Functions.has_n(self.orders[1], 3):
+            rsv = Functions.has_n(self.orders[1], 3)
+            self.orders[1] = sorted(Functions.take_out(self.orders[1], {rsv: 3}))
+            self.orders[0].append(rsv)
+            self.private[1] = sorted([Card(x) for x in self.orders[1]])
+            self.private[0].append(Xiao(rsv))
+
+    def check(self, bench):
+        # check all the things in the order of their priority
+        available = {}
+        if self._check_gang_private(bench.order):
+            available['gang'] = ['private', self._check_gang_private(bench.order)]
+        elif self._check_gang_public(bench.order):
+            idx, tp = self._check_gang_public(bench.order)
+            if tp == 'Beng':
+                available['pao'] = ['public', idx]
+            available['gang'] = ['public', idx]
+        else:
+            available['guo'] = []
+            if self._check_ke(bench.order):
+                available['ke'] = []
+        return available
+
+    def dia(self, bench, frm, idx):
+        if frm == 'private':
+            self.public = sorted(self.public + [Dia(bench.order)])
+            self.orders[0].remove(bench.order)
+            self.private[0].pop(idx)
+        else:
+            self.public[idx] = self.public[idx].dia()
+            self.public.sort()
+
+    def pao(self, bench, frm, idx):
+        if frm == 'private':
+            xiao = self.private[0].pop(idx)
+            self.orders[0].remove(bench.order)
+            self.public.append(xiao.pao())
+            self.public.sort()
+        else:
+            self.public[idx] = self.public[idx].pao()
+            self.public.sort()
+
+    def xiao(self, bench):
+        self.public.append(Xiao(bench.order))
+        self.public.sort()
+        self.orders[1] = [x for x in self.orders[1] if x != bench.order]
+        self.private[1] = [card for card in self.private[1] if card.order != bench.order]
+
+    def beng(self, bench):
+        self.public.append(Beng(bench.order))
+        self.public.sort()
+        self.orders[1] = [x for x in self.orders[1] if x != bench.order]
+        self.private[1] = [card for card in self.private[1] if card.order != bench.order]
+
+    def _check_gang_private(self, bench_order):
+        # param bench is the order of the card
+        try:
+            return self.orders[0].index(bench_order)
+        except ValueError:
+            return None
+
+    def _check_gang_public(self, bench_order):
+        for ke in self.public:
+            if (ke.__class__.__name__ == 'Xiao' or ke.__class__.__name__ == 'Beng') and ke.order == bench_order:
+                return self.public.index(ke), ke.__class__.__name__
+        return None
+
+    def _check_ke(self, bench_order):
+        return self.orders[1].count(bench_order) == 2
 
 
 """
@@ -536,12 +577,6 @@ class Hand:
         for cat in ['gang', 'ke', 'shun', '2710', 'mixed']:
             res += getattr(self, '_check_'+cat)()
         return res
-    
-    def _check_gang(self):
-        return [Gang(self.coming.order)] if self.dups_holding == 3 else []
-    
-    def _check_ke(self):
-        return [Ke(self.coming.order)] if self.dups_holding == 2 else []
 
     def _check_shun(self):
         res = []
@@ -595,13 +630,13 @@ class Hand:
             node = queue.popleft()
 """            
                 
-        
+
 if __name__ == '__main__':
-        
+
     deck = Pool()
     deal_1 = deck.deal_hand(1)[0]
     the_21 = deck.deal()
-    h = Hand(sorted(deal_1), [], the_21)
+    h = Hand([], sorted(deal_1+the_21), [])
     print([c.hanzi for c in h.private])
     print(h.coming.hanzi)
     print([res.__str__() for res in h.private_usage])

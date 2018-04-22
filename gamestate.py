@@ -5,7 +5,7 @@ Created on Fri Apr  13 00:58:09 2018
 @author: PG738LD
 """
 
-from const import Functions
+from const import Functions, HANZI, ACTIONS
 from objects import Hand, Pool
 
 
@@ -46,15 +46,15 @@ class Gamestate:
         self.pool = pool
         self.end = False
 
-    def screen(self, pointing_pos=None):
+    def screen(self, pointing_actions=None, action_choices=None, pointing_cards=None):
         cpt_dealer = '[庄]' if self.game_info['dealer'] == 2 else ''
         hm_dealer = '[庄]' if self.game_info['dealer'] == 1 else ''
 
-        cpt_private = '* ' * len(self.hand_2.private)
-        cpt_public = ''
+        cpt_private = '* ' * (len(self.hand_2.private[0]*3) + len(self.hand_2.private[1]))
+        cpt_public = self.hand_2.display_public()
 
         hm_private = self.hand_1.display_private()
-        hm_public = ''
+        hm_public = self.hand_1.display_public()
 
         table_cpt = ''.join([x.hanzi for x in self.table[0]]) + ' ' * (43 - 2*len(self.table[0])) + '|'
         table_hm = ''.join([x.hanzi for x in self.table[1]]) + ' ' * (43 - 2*len(self.table[1])) + '|'
@@ -62,28 +62,45 @@ class Gamestate:
         bench_cpt = '  ' if (not self.bench or self.owner == 1) else self.bench.hanzi
         bench_hm = '  ' if (not self.bench or self.owner == 2) else self.bench.hanzi
 
-        pointer = '  ' * pointing_pos + '^' if pointing_pos else ''
+        if action_choices:
+            action_icons = ''.join([HANZI[ACTIONS[i]] for i in action_choices])
+        else:
+            action_icons = '打' if self.__class__.__name__ == 'HmPlayState' else '  '
 
+        pointer_1 = '  ' * pointing_actions + '^' if pointing_actions is not None else ''
+        pointer_2 = '  ' * (pointing_cards + 3 * len(self.hand_1.private[0])) + '^' if pointing_cards else ''
+
+        padding = ' ' * ((48 - len(self.game_info['hm_name'])) // 2)
+
+        points = sum([s.points for s in self.hand_1.public])
+
+        to_play = self.hand_1.private[1][pointing_cards-1].hanzi if pointing_cards else 'None'
         screen = """
         Game: {round}
         
-                       {cpt_name} {cpt_dealer}
+                             {cpt_name} {cpt_dealer}
         
            [{cpt_private}]
-           [{cpt_public}]
+           {cpt_public}
          ______________________________________________
         |                                              |
         |   {table_cpt}
+        |                                              |
         |                     [{bench_cpt}]                     |
         |                     [{bench_hm}]                     |
+        |                                              |
         |   {table_hm}
         |______________________________________________|
-                         Card Left: {left}
-    
-           [{hm_public}]
+                              [{action_icons}]
+                               {pointer_1}
+           {hm_public}
            [{hm_private}]
-          {pointer}
-                       {hm_name} {hm_dealer}
+          {pointer_2}
+        {padding}{hm_name} {hm_dealer}
+        
+        ________________________________________________
+        your current 胡子:{points}
+        {to_play}
         """.format(round=self.game_info['round'],
                    cpt_name=self.game_info['cpt_name'],
                    cpt_dealer=cpt_dealer,
@@ -93,23 +110,27 @@ class Gamestate:
                    bench_cpt=bench_cpt,
                    bench_hm=bench_hm,
                    table_hm=table_hm,
-                   left=self.pool.left(),
+                   action_icons=action_icons,
+                   pointer_1=pointer_1,
                    hm_private=hm_private,
                    hm_public=hm_public,
-                   pointer=pointer,
+                   points=points,
+                   pointer_2=pointer_2,
+                   padding=padding,
                    hm_name=self.game_info['hm_name'],
-                   hm_dealer=hm_dealer)
-
+                   hm_dealer=hm_dealer,
+                   state_status=self.__class__.__name__,
+                   to_play=to_play)
         return screen
 
-    def print_screen(self, pointing_pos=None):
-        screen = self.screen(pointing_pos)
+    def print_screen(self, pointing_actions=None, action_choice=None, pointing_cards=None):
+        screen = self.screen(pointing_actions, action_choice, pointing_cards)
         Functions.stdout(screen)
         return
 
-    def pick_left_right(self, length):
-        self.print_screen(1)
+    def pick_cards(self, length):
         pos = 1
+        self.print_screen(pointing_cards=pos)
         while True:
             key_in = Functions.stdin()
             if key_in == 'enter' or key_in == 'space':
@@ -119,15 +140,48 @@ class Gamestate:
                     pos -= 1
                 elif pos < length and key_in == 'right':
                     pos += 1
-            self.print_screen(pos)
+            self.print_screen(pointing_cards=pos)
+
+    def pick_actions(self, icons):
+        pos = 0
+        self.print_screen(pointing_actions=pos, action_choice=icons)
+        while True:
+            key_in = Functions.stdin()
+            # if key_in == 'esc':
+            #     import sys
+            #     sys.exit()
+            if key_in == 'enter' or key_in == 'space':
+                return icons[pos]
+            else:
+                if pos > 0 and key_in == 'left':
+                    pos -= 1
+                elif pos < len(icons)-1 and key_in == 'right':
+                    pos += 1
+            self.print_screen(pointing_actions=pos, action_choice=icons)
+
+    def check_(self):
+        available = self.hand_1.check(self.bench)
+        icons = []
+        if 'pao' in available:
+            icons.append(5)
+        elif 'gang' in available:
+            icons.append(4) if self.turn == self.owner else icons.append(5)
+        elif 'ke' in available and self.turn == self.owner:
+            icons.append(3)
+        else:
+            if 'ke' in available:
+                icons.append(2)
+            if 'guo' in available:
+                icons.append(0)
+        return sorted(icons), available
 
 
 class DealState(Gamestate):
 
     def __init__(self, game_info):
         self.dealer = game_info['dealer']
-        hand_hm, hand_cpt, the_21, pool = DealState.deal(self.dealer)
-        super().__init__(game_info, hand_hm, hand_cpt, 0, 0, self.dealer, ([], []), None, pool)
+        hand_1, hand_2, the_21, pool = DealState.deal(self.dealer)
+        super().__init__(game_info, hand_1, hand_2, 0, 0, self.dealer, ([], []), None, pool)
         self.log = self.get_log(the_21)
 
     @staticmethod
@@ -139,9 +193,12 @@ class DealState(Gamestate):
             cards_1.append(the_21)
         else:
             cards_2.append(the_21)
-        hand_hm = Hand(cards_1, [])
-        hand_cpt = Hand(cards_2, [])
-        return hand_hm, hand_cpt, the_21, pool
+        hand_1 = Hand([[], cards_1], [])
+        hand_2 = Hand([[], cards_2], [])
+
+        hand_1.init_sort()
+        hand_2.init_sort()
+        return hand_1, hand_2, the_21, pool
 
     def get_log(self, the_21):
         dealer_name = self.game_info['hm_name'] if self.dealer == 1 else self.game_info['cpt_name']
@@ -165,7 +222,6 @@ class HmStrategyState(Gamestate):
         super().__init__(game_info, hand_1, hand_2, source, owner, 1, table, bench, pool)
 
     def pass_(self):
-        _ = Functions.stdin()
         if self.owner == 1:
             return CptStrategyState(self.game_info, self.hand_1, self.hand_2, 2, 1, self.table, self.bench, self.pool)
         else:
@@ -173,7 +229,25 @@ class HmStrategyState(Gamestate):
             return HmOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
 
     def next_(self):
-        return self.pass_()
+        icons, available = self.check_()
+        # actions = [0, 2, 5], available = {'guo': [], 'beng': [], 'gang': ['private', idx]}
+        pick = self.pick_actions(icons)
+        # pick = 4 (if click 5)
+        if pick == 0:
+            return self.pass_()
+        elif pick == 4 or pick == 5:
+            # dia or pao
+            getattr(self.hand_1, ACTIONS[pick])(self.bench, available['gang'][0], available['gang'][1])
+            if len([gang for gang in self.hand_1.public if self.__class__.__bases__[0].__name__ == 'Gang']) > 1:
+                return CptOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
+            else:
+                return HmPlayState(self.game_info, self.hand_1, self.hand_2,
+                                   self.source, self.owner, self.table, self.pool)
+        elif pick == 2 or 3:
+            # beng or xiao
+            getattr(self.hand_1, ACTIONS[pick])(self.bench)
+            return HmPlayState(self.game_info, self.hand_1, self.hand_2,
+                               self.source, self.owner, self.table, self.pool)
 
 
 class HmOpenState(Gamestate):
@@ -182,7 +256,6 @@ class HmOpenState(Gamestate):
         super().__init__(game_info, hand_1, hand_2, source, 2, 1, table, None, pool)
 
     def open_(self):
-        _ = Functions.stdin()
         new_card = self.pool.deal()
         # check dia, xiao here, TBI
         # pass the card and just give it to hm
@@ -202,8 +275,8 @@ class HmPlayState(Gamestate):
         super().__init__(game_info, hand_1, hand_2, source, owner, 1, table, None, pool)
 
     def play(self):
-        pick_pos = self.pick_left_right(len(self.hand_1.private))
-        played_card = self.hand_1.private.pop(pick_pos-1)
+        pick_pos = self.pick_cards(len(self.hand_1.private[1]))
+        played_card = self.hand_1.private[1].pop(pick_pos-1)
         return CptStrategyState(self.game_info, self.hand_1, self.hand_2, 1, 1, self.table, played_card, self.pool)
 
     def next_(self):
@@ -253,7 +326,7 @@ class CptPlayState(Gamestate):
         super().__init__(game_info, hand_1, hand_2, source, owner, 2, table, None, pool)
 
     def auto_play(self):
-        played_card = self.hand_2.private.pop()
+        played_card = self.hand_2.private[1].pop()
         return HmStrategyState(self.game_info, self.hand_1, self.hand_2, 1, 2, self.table, played_card, self.pool)
 
     def next_(self):
