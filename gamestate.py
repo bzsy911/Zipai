@@ -74,7 +74,7 @@ class Gamestate:
 
         points = sum([s.points for s in self.hand_1.public])
 
-        to_play = self.hand_1.private[1][pointing_cards-1].hanzi if pointing_cards else 'None'
+        orders = ''
         screen = """
         Game: {round}
         
@@ -120,7 +120,7 @@ class Gamestate:
                    hm_name=self.game_info['hm_name'],
                    hm_dealer=hm_dealer,
                    state_status=self.__class__.__name__,
-                   to_play=to_play)
+                   to_play=orders)
         return screen
 
     def print_screen(self, pointing_actions=None, action_choice=None, pointing_cards=None):
@@ -159,8 +159,8 @@ class Gamestate:
                     pos += 1
             self.print_screen(pointing_actions=pos, action_choice=icons)
 
-    def check_(self):
-        available = self.hand_1.check(self.bench)
+    def check_(self, player_id):
+        available = getattr(self, 'hand_'+str(player_id)).check(self.bench)
         icons = []
         if 'pao' in available:
             icons.append(5)
@@ -229,7 +229,7 @@ class HmStrategyState(Gamestate):
             return HmOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
 
     def next_(self):
-        icons, available = self.check_()
+        icons, available = self.check_(1)
         # actions = [0, 2, 5], available = {'guo': [], 'beng': [], 'gang': ['private', idx]}
         pick = self.pick_actions(icons)
         # pick = 4 (if click 5)
@@ -238,7 +238,7 @@ class HmStrategyState(Gamestate):
         elif pick == 4 or pick == 5:
             # dia or pao
             getattr(self.hand_1, ACTIONS[pick])(self.bench, available['gang'][0], available['gang'][1])
-            if len([gang for gang in self.hand_1.public if self.__class__.__bases__[0].__name__ == 'Gang']) > 1:
+            if len([gang for gang in self.hand_1.public if gang.__class__.__bases__[0].__name__ == 'Gang']) > 1:
                 return CptOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
             else:
                 return HmPlayState(self.game_info, self.hand_1, self.hand_2,
@@ -277,6 +277,7 @@ class HmPlayState(Gamestate):
     def play(self):
         pick_pos = self.pick_cards(len(self.hand_1.private[1]))
         played_card = self.hand_1.private[1].pop(pick_pos-1)
+        self.hand_1.orders[1].pop(pick_pos-1)
         return CptStrategyState(self.game_info, self.hand_1, self.hand_2, 1, 1, self.table, played_card, self.pool)
 
     def next_(self):
@@ -298,7 +299,25 @@ class CptStrategyState(Gamestate):
             return CptOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
 
     def next_(self):
-        return self.pass_()
+        icons, available = self.check_(2)
+        # actions = [0, 2, 5], available = {'guo': [], 'beng': [], 'gang': ['private', idx]}
+        pick = icons[-1]
+        # pick = 4 (if click 5)
+        if pick == 0:
+            return self.pass_()
+        elif pick == 4 or pick == 5:
+            # dia or pao
+            getattr(self.hand_2, ACTIONS[pick])(self.bench, available['gang'][0], available['gang'][1])
+            if len([gang for gang in self.hand_2.public if gang.__class__.__bases__[0].__name__ == 'Gang']) > 1:
+                return HmOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
+            else:
+                return CptPlayState(self.game_info, self.hand_1, self.hand_2,
+                                    self.source, self.owner, self.table, self.pool)
+        elif pick == 2 or 3:
+            # beng or xiao
+            getattr(self.hand_2, ACTIONS[pick])(self.bench)
+            return CptPlayState(self.game_info, self.hand_1, self.hand_2,
+                                self.source, self.owner, self.table, self.pool)
 
 
 class CptOpenState(Gamestate):
@@ -326,7 +345,7 @@ class CptPlayState(Gamestate):
         super().__init__(game_info, hand_1, hand_2, source, owner, 2, table, None, pool)
 
     def auto_play(self):
-        played_card = self.hand_2.private[1].pop()
+        played_card = self.hand_2.rand_play()
         return HmStrategyState(self.game_info, self.hand_1, self.hand_2, 1, 2, self.table, played_card, self.pool)
 
     def next_(self):
