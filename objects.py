@@ -576,41 +576,40 @@ class Hand:
     def _check_ke(self, bench_order):
         return self.orders[1].count(bench_order) == 2
 
+    def _check_qia(self, bench):
+        return self._check_2710(bench) + self._check_shun(bench.order) + self._check_mixed(bench)
 
-"""
-    def check_public(self):
-        for i in range(len(self.public)):
-            if [x.order for x in self.public[i]].count(self.coming.order) == 3:
-                return i
-        return []
-
-    def check_private(self):
-        res = []
-        for cat in ['gang', 'ke', 'shun', '2710', 'mixed']:
-            res += getattr(self, '_check_'+cat)()
-        return res
-
-    def _check_shun(self):
+    def _check_shun(self, bench_order):
         res = []
         # check left, two-sides, and right respectively
         pos = [-2, -1, 1, 2]
         for i in range(3):
-            if (self.coming.order + pos[i] in self.orders and 
-                self.coming.order + pos[i+1] in self.orders):
-                if self.coming.num == 3-i:
-                    res.append(YiErSan(self.coming.tp))
+            if bench_order + pos[i] in self.orders[1] and bench_order + pos[i+1] in self.orders[1]:
+                if bench_order == 3-i:
+                    res.append([YiErSan(bench_order), bench_order + pos[i], bench_order + pos[i+1]])
                 else:
-                    res.append(Shun(self.coming.order + i - 1))
+                    res.append([Shun(bench_order + i - 1), bench_order + pos[i], bench_order + pos[i+1]])
         return res
-    
-    def _check_2710(self):
-        if self.coming.num in [2, 7, 10]:
-            the_other_two = [x.order for x in ErQiShi(self.coming.tp).cards]
-            the_other_two.remove(self.coming.order)
-            if set(the_other_two) <= set(self.orders):
-                return [ErQiShi(self.coming.tp)]
+
+    def _check_2710(self, bench):
+        if bench.num in [2, 7, 10]:
+            the_other_two = [x.order for x in ErQiShi(bench.tp).cards if x.order != bench.order]
+            if set(the_other_two) <= set(self.orders[1]):
+                return [[ErQiShi(bench.tp), the_other_two[0], the_other_two[1]]]
         return []
-            
+
+    def _check_mixed(self, bench):
+        # two ways to qia mixed
+        res = []
+        if {bench.num, bench.num+100} <= set(self.orders[1]):
+            res.append([Mixed(bench.num, bench.tp), bench.num, bench.num+100])
+        counterpart = bench.order-(2*bench.tp-1)*100
+        if self.orders.count(counterpart) == 2:
+            res.append([Mixed(bench.num, not bench.tp), counterpart, counterpart])
+        return res
+
+
+"""
     def _check_mixed(self):
         # two ways to qia mixed
         res = []
@@ -644,11 +643,4 @@ class Hand:
                 
 
 if __name__ == '__main__':
-
-    deck = Pool()
-    deal_1 = deck.deal_hand(1)[0]
-    the_21 = deck.deal()
-    h = Hand([], sorted(deal_1+the_21), [])
-    print([c.hanzi for c in h.private])
-    print(h.coming.hanzi)
-    print([res.__str__() for res in h.private_usage])
+    pass
