@@ -232,7 +232,6 @@ class HmStrategyState(Gamestate):
         icons, available = self.check_(1)
         # actions = [0, 2, 5], available = {'guo': [], 'beng': [], 'gang': ['private', idx]}
         pick = self.pick_actions(icons)
-        # pick = 4 (if click 5)
         if pick == 0:
             return self.pass_()
         elif pick == 4 or pick == 5:
@@ -257,9 +256,12 @@ class HmOpenState(Gamestate):
 
     def open_(self):
         new_card = self.pool.deal()
-        # check dia, xiao here, TBI
-        # pass the card and just give it to hm
-        return HmStrategyState(self.game_info, self.hand_1, self.hand_2, 2, 1, self.table, new_card, self.pool)
+        self.bench = new_card
+        icons, _ = self.check_(2)
+        if 5 in icons or 2 in icons:
+            return CptStrategyState(self.game_info, self.hand_1, self.hand_2, 2, 1, self.table, new_card, self.pool)
+        else:
+            return HmStrategyState(self.game_info, self.hand_1, self.hand_2, 2, 1, self.table, new_card, self.pool)
 
     def next_(self):
         if self.pool.cards:
@@ -326,9 +328,12 @@ class CptOpenState(Gamestate):
 
     def open_(self):
         new_card = self.pool.deal()
-        # check dia, xiao here, TBI
-        # pass the card and just give it to hm
-        return CptStrategyState(self.game_info, self.hand_1, self.hand_2, 2, 2, self.table, new_card, self.pool)
+        self.bench = new_card
+        icons, _ = self.check_(1)
+        if 5 in icons or 2 in icons:
+            return HmStrategyState(self.game_info, self.hand_1, self.hand_2, 2, 2, self.table, new_card, self.pool)
+        else:
+            return CptStrategyState(self.game_info, self.hand_1, self.hand_2, 2, 2, self.table, new_card, self.pool)
 
     def next_(self):
         if self.pool.cards:
