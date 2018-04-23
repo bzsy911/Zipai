@@ -5,6 +5,10 @@ Created on Mon Mar  5 10:15:29 2018
 @author: PG738LD
 """
 
+import random
+from const import HANZI, Functions
+from collections import deque
+
 """############################################################
    # Card     Set              Partial                        #
    #          |-- Pair         |-- Dandiao                    #
@@ -20,11 +24,6 @@ Created on Mon Mar  5 10:15:29 2018
    #              |-- Pao                                     #
    ############################################################
 """
-
-from const import HANZI, Functions
-from collections import deque
-import random
-
 
 class Card:
     """A card is defined by 2 features, its number and type.
@@ -459,17 +458,8 @@ class Hand:
 
     Attributes
     ----------
-    orders_private : [list[int], list[int]]
+    orders : [list[int], list[int]]
         The corresponding orders of private cards
-    dups_holding : int
-        Number of same cards as coming holding in hand privately
-    private_usage : list[Set]
-        List of possibilities of using the coming card, all possibilities are
-        considered, regardless of rules
-    public_usage : [int] (current inconsistent with private_usage here)
-        The index in public of the Set that can pao(dia) the coming card
-    shout : TBD
-        The corresponding slang to shout out after decision
     """
     def __init__(self, private, public):
         self.private = private
@@ -520,11 +510,6 @@ class Hand:
                 available['qia'] = self._check_qia(bench)
         return available
 
-    def play(self, idx):
-        card = self.private[1].pop(idx)
-        self.orders[1].pop(idx)
-        return card
-
     def dia(self, bench, frm, idx):
         if frm == 'private':
             self.public.append(Dia(bench.order))
@@ -560,8 +545,13 @@ class Hand:
         self.orders[1].remove(num_2)
         self.private[1] = [Card(x) for x in self.orders[1]]
 
+    def play(self, idx):
+        card = self.private[1].pop(idx)
+        self.orders[1].pop(idx)
+        return card
+
     def rand_play(self):
-        n = random.randint(0, len(self.private[1])-1)
+        n = random.randint(0, len(self.private[1]) - 1)
         played_card = self.private[1].pop(n)
         self.orders[1].pop(n)
         return played_card
@@ -618,7 +608,6 @@ class Hand:
 
 
 """
-    
     def shout(self):
         pass
 
@@ -639,8 +628,4 @@ class Hand:
         
         while queue:
             node = queue.popleft()
-"""            
-                
-
-if __name__ == '__main__':
-    pass
+"""

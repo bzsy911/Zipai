@@ -3,9 +3,10 @@ A toy implementation of Hengyang Zipai (衡阳字牌).
 
 ## Version 0.4
 
-- Qia
+- Qia, and its rules
 - Check Pao and Beng before Qia
 - Unsort Public
+- Log system
 
 ## Version 0.3
 
