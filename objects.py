@@ -516,6 +516,8 @@ class Hand:
             available['guo'] = []
             if self._check_ke(bench.order):
                 available['ke'] = []
+            if self._check_qia(bench):
+                available['qia'] = self._check_qia(bench)
         return available
 
     def play(self, idx):
@@ -525,34 +527,38 @@ class Hand:
 
     def dia(self, bench, frm, idx):
         if frm == 'private':
-            self.public = sorted(self.public + [Dia(bench.order)])
+            self.public.append(Dia(bench.order))
             self.orders[0].remove(bench.order)
             self.private[0].pop(idx)
         else:
-            self.public[idx] = self.public[idx].dia()
-            self.public.sort()
+            xiao = self.public.pop(idx)
+            self.public.append(xiao.dia())
 
     def pao(self, bench, frm, idx):
         if frm == 'private':
             xiao = self.private[0].pop(idx)
             self.orders[0].remove(bench.order)
             self.public.append(xiao.pao())
-            self.public.sort()
         else:
-            self.public[idx] = self.public[idx].pao()
-            self.public.sort()
+            ke = self.public.pop(idx)
+            self.public.append(ke.pao())
 
     def xiao(self, bench):
         self.public.append(Xiao(bench.order))
-        self.public.sort()
         self.orders[1] = [x for x in self.orders[1] if x != bench.order]
         self.private[1] = [card for card in self.private[1] if card.order != bench.order]
 
     def beng(self, bench):
         self.public.append(Beng(bench.order))
-        self.public.sort()
         self.orders[1] = [x for x in self.orders[1] if x != bench.order]
         self.private[1] = [card for card in self.private[1] if card.order != bench.order]
+
+    def qia(self, method):
+        s, num_1, num_2 = method
+        self.public.append(s)
+        self.orders[1].remove(num_1)
+        self.orders[1].remove(num_2)
+        self.private[1] = [Card(x) for x in self.orders[1]]
 
     def rand_play(self):
         n = random.randint(0, len(self.private[1])-1)
@@ -577,18 +583,20 @@ class Hand:
         return self.orders[1].count(bench_order) == 2
 
     def _check_qia(self, bench):
-        return self._check_2710(bench) + self._check_shun(bench.order) + self._check_mixed(bench)
+        # can't qia cards that were appeared before
+        # can't qia a card if holding the same, unless the holding one can be grouped in a set.
+        return self._check_2710(bench) + self._check_shun(bench) + self._check_mixed(bench)
 
-    def _check_shun(self, bench_order):
+    def _check_shun(self, bench):
         res = []
         # check left, two-sides, and right respectively
         pos = [-2, -1, 1, 2]
         for i in range(3):
-            if bench_order + pos[i] in self.orders[1] and bench_order + pos[i+1] in self.orders[1]:
-                if bench_order == 3-i:
-                    res.append([YiErSan(bench_order), bench_order + pos[i], bench_order + pos[i+1]])
+            if bench.order + pos[i] in self.orders[1] and bench.order + pos[i+1] in self.orders[1]:
+                if bench.order == 3-i:
+                    res.append([YiErSan(bench.tp), bench.order + pos[i], bench.order + pos[i+1]])
                 else:
-                    res.append([Shun(bench_order + i - 1), bench_order + pos[i], bench_order + pos[i+1]])
+                    res.append([Shun(bench.order + i - 1), bench.order + pos[i], bench.order + pos[i+1]])
         return res
 
     def _check_2710(self, bench):
@@ -610,14 +618,6 @@ class Hand:
 
 
 """
-    def _check_mixed(self):
-        # two ways to qia mixed
-        res = []
-        if set([self.coming.num, self.coming.num+100]) <= set(self.orders):
-            res.append(Mixed(self.coming.num, self.coming.tp))
-        if self.orders.count(self.coming.order-(2*self.coming.tp-1)*100) == 2:
-            res.append(Mixed(self.coming.num, not self.coming.tp))
-        return res
     
     def shout(self):
         pass
