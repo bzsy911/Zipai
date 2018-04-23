@@ -276,8 +276,7 @@ class HmPlayState(Gamestate):
 
     def play(self):
         pick_pos = self.pick_cards(len(self.hand_1.private[1]))
-        played_card = self.hand_1.private[1].pop(pick_pos-1)
-        self.hand_1.orders[1].pop(pick_pos-1)
+        played_card = self.hand_1.play(pick_pos-1)
         return CptStrategyState(self.game_info, self.hand_1, self.hand_2, 1, 1, self.table, played_card, self.pool)
 
     def next_(self):
