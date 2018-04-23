@@ -473,11 +473,12 @@ class Hand:
     """
     def __init__(self, private, public):
         self.private = private
-        self.public = public
+        self.private[1].sort()
+        self.public = sorted(public)
         self.orders = [[x.order for x in self.private[0]], [x.order for x in self.private[1]]]
 
     def display_private(self):
-        return ''.join(xiao.__str__()[1:-1] for xiao in self.private[0]) + ''.join([c.hanzi for c in sorted(self.private[1])])
+        return ''.join(xiao.__str__()[1:-1] for xiao in self.private[0]) + ''.join([c.hanzi for c in self.private[1]])
 
     def display_public(self):
         return ''.join([s.__str__() for s in self.public])
@@ -491,14 +492,14 @@ class Hand:
             dia = Functions.has_n(self.orders[1], 4)
             self.public.append(Dia(dia))
             self.orders[1] = sorted(Functions.take_out(self.orders[1], {dia: 4}))
-            self.private[1] = sorted([Card(x) for x in self.orders[1]])
+            self.private[1] = sorted([card for card in self.private[1] if card.order != dia])
 
     def _sort(self):
         while Functions.has_n(self.orders[1], 3):
             rsv = Functions.has_n(self.orders[1], 3)
             self.orders[1] = sorted(Functions.take_out(self.orders[1], {rsv: 3}))
             self.orders[0].append(rsv)
-            self.private[1] = sorted([Card(x) for x in self.orders[1]])
+            self.private[1] = sorted([card for card in self.private[1] if card.order != rsv])
             self.private[0].append(Xiao(rsv))
 
     def check(self, bench):
@@ -552,6 +553,12 @@ class Hand:
         self.public.sort()
         self.orders[1] = [x for x in self.orders[1] if x != bench.order]
         self.private[1] = [card for card in self.private[1] if card.order != bench.order]
+
+    def rand_play(self):
+        n = random.randint(0, len(self.private[1])-1)
+        played_card = self.private[1].pop(n)
+        self.orders[1].pop(n)
+        return played_card
 
     def _check_gang_private(self, bench_order):
         # param bench is the order of the card
