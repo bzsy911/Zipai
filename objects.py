@@ -517,6 +517,11 @@ class Hand:
                 available['ke'] = []
         return available
 
+    def play(self, idx):
+        card = self.private[1].pop(idx)
+        self.orders[1].pop(idx)
+        return card
+
     def dia(self, bench, frm, idx):
         if frm == 'private':
             self.public = sorted(self.public + [Dia(bench.order)])
