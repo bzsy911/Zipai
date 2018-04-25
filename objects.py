@@ -583,7 +583,7 @@ class Hand:
         pos = [-2, -1, 1, 2]
         for i in range(3):
             if bench.order + pos[i] in self.orders[1] and bench.order + pos[i+1] in self.orders[1]:
-                if bench.order == 3-i:
+                if bench.num == 3-i:
                     res.append([YiErSan(bench.tp), bench.order + pos[i], bench.order + pos[i+1]])
                 else:
                     res.append([Shun(bench.order + i - 1), bench.order + pos[i], bench.order + pos[i+1]])
@@ -602,7 +602,7 @@ class Hand:
         if {bench.num, bench.num+100} <= set(self.orders[1]):
             res.append([Mixed(bench.num, bench.tp), bench.num, bench.num+100])
         counterpart = bench.order-(2*bench.tp-1)*100
-        if self.orders.count(counterpart) == 2:
+        if self.orders[1].count(counterpart) == 2:
             res.append([Mixed(bench.num, not bench.tp), counterpart, counterpart])
         return res
 
