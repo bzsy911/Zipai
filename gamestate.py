@@ -55,6 +55,8 @@ class Gamestate:
 
         hm_private = self.hand_1.display_private()
         hm_public = self.hand_1.display_public()
+        # hm_private = self.hand_1.orders
+        # hm_public = self.hand_1.public
 
         table_cpt = ''.join([x.hanzi for x in self.table[0]]) + ' ' * (43 - 2*len(self.table[0])) + '|'
         table_hm = ''.join([x.hanzi for x in self.table[1]]) + ' ' * (43 - 2*len(self.table[1])) + '|'
@@ -103,6 +105,9 @@ class Gamestate:
         
         ________________________________________________
         your current 胡子:{points}
+        bench:{bench_order}
+        private_ke:{pk}
+        check:{check_fun}
         
         """.format(round=self.game_info['round'],
                    cpt_name=self.game_info['cpt_name'],
@@ -122,7 +127,10 @@ class Gamestate:
                    pointer_2=pointer_2,
                    padding_2=padding_2,
                    hm_name=self.game_info['hm_name'],
-                   hm_dealer=hm_dealer)
+                   hm_dealer=hm_dealer,
+                   bench_order=self.bench.order if self.bench else '',
+                   pk=self.hand_1.orders[0],
+                   check_fun=self.hand_1._check_gang_private(self.bench.order) if self.bench else '')
         return screen
 
     def print_screen(self, pointing_actions=None, action_choices=None, qia_choices=None, pointing_cards=None):
@@ -168,6 +176,8 @@ class Gamestate:
             key_in = Functions.stdin()
             if key_in == 'enter' or key_in == 'space':
                 return qia_choices[pos]
+            elif key_in == 'esc':
+                return None
             else:
                 if pos > 0 and key_in == 'left':
                     pos -= 1
@@ -176,6 +186,7 @@ class Gamestate:
             self.print_screen(pointing_actions=pos, qia_choices=qia_choices)
 
     def check_(self, player_id):
+        print("player "+str(player_id)+' is now checking...'+self.bench.hanzi)
         available = getattr(self, 'hand_'+str(player_id)).check(self.bench)
         icons = []
         if 'pao' in available:
@@ -187,10 +198,18 @@ class Gamestate:
         else:
             if 'ke' in available:
                 icons.append(2)
-            if 'qia' in available:
+            if 'qia' in available \
+                    and self.bench.order not in [x.order for x in self.table[0]] \
+                    and self.bench.order not in [x.order for x in self.table[1]]:
                 icons.append(1)
+                if self.bench.order in getattr(self, 'hand_'+str(player_id)).orders[1]:
+                    # check luodiability
+
+                    pass
             if 'guo' in available:
                 icons.append(0)
+        print(available)
+        _ = Functions.stdin()
         return sorted(icons), available
 
 
@@ -249,28 +268,31 @@ class HmStrategyState(Gamestate):
     def next_(self):
         icons, available = self.check_(1)
         # actions = [0, 2, 5], available = {'guo': [], 'beng': [], 'gang': ['private', idx]}
-        pick = self.pick_actions(icons)
-        if pick == 0:
-            return self.pass_()
-        elif pick == 4 or pick == 5:
-            # dia or pao
-            getattr(self.hand_1, ACTIONS[pick])(self.bench, available['gang'][0], available['gang'][1])
-            if len([gang for gang in self.hand_1.public if gang.__class__.__bases__[0].__name__ == 'Gang']) > 1:
-                return CptOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
-            else:
+        while True:
+            pick = self.pick_actions(icons)
+            if pick == 0:
+                return self.pass_()
+            elif pick == 4 or pick == 5:
+                # dia or pao
+                getattr(self.hand_1, ACTIONS[pick])(self.bench, available['gang'][0], available['gang'][1])
+                if len([gang for gang in self.hand_1.public if gang.__class__.__bases__[0].__name__ == 'Gang']) > 1:
+                    return CptOpenState(self.game_info, self.hand_1, self.hand_2, self.source, self.table, self.pool)
+                else:
+                    return HmPlayState(self.game_info, self.hand_1, self.hand_2,
+                                       self.source, self.owner, self.table, self.pool)
+            elif pick == 2 or pick == 3:
+                # beng or xiao
+                getattr(self.hand_1, ACTIONS[pick])(self.bench)
                 return HmPlayState(self.game_info, self.hand_1, self.hand_2,
                                    self.source, self.owner, self.table, self.pool)
-        elif pick == 2 or pick == 3:
-            # beng or xiao
-            getattr(self.hand_1, ACTIONS[pick])(self.bench)
-            return HmPlayState(self.game_info, self.hand_1, self.hand_2,
-                               self.source, self.owner, self.table, self.pool)
-        elif pick == 1:
-            # qia
-            qia_method = self.pick_qia(available['qia'])
-            self.hand_1.qia(qia_method)
-            return HmPlayState(self.game_info, self.hand_1, self.hand_2,
-                               self.source, self.owner, self.table, self.pool)
+            elif pick == 1:
+                # qia
+                qia_method = self.pick_qia(available['qia'])
+                if not qia_method:
+                    continue
+                self.hand_1.qia(qia_method)
+                return HmPlayState(self.game_info, self.hand_1, self.hand_2,
+                                   self.source, self.owner, self.table, self.pool)
 
 
 class HmOpenState(Gamestate):
