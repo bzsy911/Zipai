@@ -1,5 +1,12 @@
 # Zipai
-A toy implementation of Hengyang Zipai.
+A toy implementation of Hengyang Zipai (衡阳字牌).
+
+## Version 0.4
+
+- Qia, and its rules
+- Check Pao and Beng before Qia
+- Unsort Public
+- Bug fixes
 
 ## Version 0.3
 
