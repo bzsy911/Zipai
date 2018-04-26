@@ -46,7 +46,8 @@ class Gamestate:
         self.pool = pool
         self.end = False
 
-    def screen(self, pointing_actions=None, action_choices=None, qia_choices=None, pointing_cards=None):
+    def screen(self, pointing_actions=None, action_choices=None,
+               qia_choices=None, drop_choices=None, pointing_cards=None):
         cpt_dealer = '[庄]' if self.game_info['dealer'] == 2 else ''
         hm_dealer = '[庄]' if self.game_info['dealer'] == 1 else ''
 
@@ -70,7 +71,11 @@ class Gamestate:
             pointer_1 = ' ' * (2 * pointing_actions) + '^' if pointing_actions is not None else ''
         elif qia_choices:
             padding_1 = ' ' * (23 - 4 * len(qia_choices))
-            action_icons = '  '.join([s[0].__str__()[1:-1] for s in qia_choices])
+            action_icons = '  '.join([s[0][0].__str__()[1:-1] for s in qia_choices])
+            pointer_1 = ' ' * (8 * pointing_actions) + '^' if pointing_actions is not None else ''
+        elif drop_choices:
+            padding_1 = ' ' * (11 - 4 * len(drop_choices))
+            action_icons = '  '.join([s.__str__()[1:-1] for s in drop_choices])
             pointer_1 = ' ' * (8 * pointing_actions) + '^' if pointing_actions is not None else ''
         else:
             padding_1 = ' ' * 22
@@ -105,10 +110,6 @@ class Gamestate:
         
         ________________________________________________
         your current 胡子:{points}
-        bench:{bench_order}
-        private_ke:{pk}
-        check:{check_fun}
-        
         """.format(round=self.game_info['round'],
                    cpt_name=self.game_info['cpt_name'],
                    cpt_dealer=cpt_dealer,
@@ -127,14 +128,12 @@ class Gamestate:
                    pointer_2=pointer_2,
                    padding_2=padding_2,
                    hm_name=self.game_info['hm_name'],
-                   hm_dealer=hm_dealer,
-                   bench_order=self.bench.order if self.bench else '',
-                   pk=self.hand_1.orders[0],
-                   check_fun=self.hand_1._check_gang_private(self.bench.order) if self.bench else '')
+                   hm_dealer=hm_dealer)
         return screen
 
-    def print_screen(self, pointing_actions=None, action_choices=None, qia_choices=None, pointing_cards=None):
-        screen = self.screen(pointing_actions, action_choices, qia_choices, pointing_cards)
+    def print_screen(self, pointing_actions=None, action_choices=None,
+                     qia_choices=None, drop_choices=None, pointing_cards=None):
+        screen = self.screen(pointing_actions, action_choices, qia_choices, drop_choices, pointing_cards)
         Functions.stdout(screen)
         return
 
@@ -157,9 +156,6 @@ class Gamestate:
         self.print_screen(pointing_actions=pos, action_choices=icons)
         while True:
             key_in = Functions.stdin()
-            # if key_in == 'esc':
-            #     import sys
-            #     sys.exit()
             if key_in == 'enter' or key_in == 'space':
                 return icons[pos]
             else:
@@ -176,7 +172,7 @@ class Gamestate:
             key_in = Functions.stdin()
             if key_in == 'enter' or key_in == 'space':
                 return qia_choices[pos]
-            elif key_in == 'esc':
+            elif key_in == 'up':
                 return None
             else:
                 if pos > 0 and key_in == 'left':
@@ -185,31 +181,41 @@ class Gamestate:
                     pos += 1
             self.print_screen(pointing_actions=pos, qia_choices=qia_choices)
 
+    def pick_drop(self, drop_choices):
+        if len(drop_choices) == 1:
+            return drop_choices[0]
+        pos = 0
+        self.print_screen(pointing_actions=pos, drop_choices=drop_choices)
+        while True:
+            key_in = Functions.stdin()
+            if key_in == 'enter' or key_in == 'space':
+                return drop_choices[pos]
+            elif key_in == 'up':
+                return None
+            else:
+                if pos > 0 and key_in == 'left':
+                    pos -= 1
+                elif pos < len(drop_choices) - 1 and key_in == 'right':
+                    pos += 1
+            self.print_screen(pointing_actions=pos, drop_choices=drop_choices)
+
     def check_(self, player_id):
-        print("player "+str(player_id)+' is now checking...'+self.bench.hanzi)
         available = getattr(self, 'hand_'+str(player_id)).check(self.bench)
         icons = []
-        if 'pao' in available:
+        if 'pao' in available and self.source == 2:
             icons.append(5)
         elif 'gang' in available:
             icons.append(4) if self.turn == self.owner else icons.append(5)
         elif 'ke' in available and self.turn == self.owner:
             icons.append(3)
         else:
-            if 'ke' in available:
-                icons.append(2)
-            if 'qia' in available \
-                    and self.bench.order not in [x.order for x in self.table[0]] \
-                    and self.bench.order not in [x.order for x in self.table[1]]:
-                icons.append(1)
-                if self.bench.order in getattr(self, 'hand_'+str(player_id)).orders[1]:
-                    # check luodiability
-
-                    pass
+            if self.bench.order not in [x.order for x in self.table[0] + self.table[1]]:
+                if 'ke' in available:
+                    icons.append(2)
+                if 'qia' in available:
+                    icons.append(1)
             if 'guo' in available:
                 icons.append(0)
-        print(available)
-        _ = Functions.stdin()
         return sorted(icons), available
 
 
@@ -287,10 +293,14 @@ class HmStrategyState(Gamestate):
                                    self.source, self.owner, self.table, self.pool)
             elif pick == 1:
                 # qia
-                qia_method = self.pick_qia(available['qia'])
-                if not qia_method:
+                aux_qia = self.pick_qia(available['qia'])
+                if not aux_qia:
                     continue
-                self.hand_1.qia(qia_method)
+                method, drop = aux_qia
+                self.hand_1.qia(method)
+                if drop:
+                    drop_method = self.pick_drop(drop)
+                    self.hand_1.drop(drop_method)
                 return HmPlayState(self.game_info, self.hand_1, self.hand_2,
                                    self.source, self.owner, self.table, self.pool)
 

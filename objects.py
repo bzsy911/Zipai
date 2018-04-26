@@ -507,7 +507,13 @@ class Hand:
             if self._check_ke(bench.order):
                 available['ke'] = []
             if self._check_qia(bench):
-                available['qia'] = self._check_qia(bench)
+                qualifies = []
+                for qia in self._check_qia(bench):
+                    if self._check_drop(qia, bench) is not None:
+                        aux_qia = [qia, self._check_drop(qia, bench)]
+                        qualifies.append(aux_qia)
+                if qualifies:
+                    available['qia'] = qualifies
         return available
 
     def dia(self, bench, frm, idx):
@@ -605,6 +611,25 @@ class Hand:
         if self.orders[1].count(counterpart) == 2:
             res.append([Mixed(bench.num, not bench.tp), counterpart, counterpart])
         return res
+
+    def drop(self, s):
+        self.public.append(s)
+        for x in s.orders:
+            self.orders[1].remove(x)
+        self.private[1] = [Card(x) for x in self.orders[1]]
+
+    def _check_drop(self, qia, bench):
+        left = Functions.take_out(self.orders[1], [qia[1], qia[2]])
+        if bench.order not in left:
+            return []
+        else:
+            left = Functions.take_out(left, [bench.order])
+            hand = Hand([[], [Card(x) for x in left]],[])
+            if len(hand._check_qia(bench)) > 0:
+                return [s[0] for s in hand._check_qia(bench)]
+            else:
+                return None
+
 
 
 """
