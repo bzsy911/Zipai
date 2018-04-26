@@ -495,7 +495,7 @@ class Hand:
     def check(self, bench):
         # check all the things in the order of their priority
         available = {}
-        if self._check_gang_private(bench.order):
+        if self._check_gang_private(bench.order) is not None:
             available['gang'] = ['private', self._check_gang_private(bench.order)]
         elif self._check_gang_public(bench.order):
             idx, tp = self._check_gang_public(bench.order)
