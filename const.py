@@ -5,7 +5,7 @@ Created on Mon Mar  5 11:06:00 2018
 @author: PG738LD
 """
 
-from collections import Counter 
+from collections import Counter, deque
 import sys, os
 
 HANZI = {
@@ -56,16 +56,63 @@ class SCREEN:
     Contact: jchen417@gmail.com
              bzsy911@gmail.com
     """
-    
 
-class Functions:
+
+class Analyzer:
+    """All card related calculation functions.
+    Will move lots of Hand methods here."""
 
     @staticmethod
-    def explode(node):
+    def check_fu(ls):
+        queue = deque([([], ls)])
+        while queue:
+            sets, cards = queue.popleft()
+            if not cards:
+                return True
+            if len(cards) == 1:
+                return False
+            if len(cards) == 2:
+                return cards[0] == cards[1]
+            for s in Analyzer._find_all(cards):
+                queue.append((sets + [s], Functions.take_out(cards, s)))
+        return False
+
+    @staticmethod
+    def _find_all(ls):
+        return Analyzer._find_ke(ls) + Analyzer._find_shun(ls) + Analyzer._find_mixed(ls)
+
+    @staticmethod
+    def _find_ke(ls):
+        return [[x, x, x] for x in set(ls) if ls.count(x) == 3]
+
+    @staticmethod
+    def _find_shun(ls):
         res = []
-        for pattern in patterns:
-            pass
-        pass
+        d = sorted(list(set(ls)))
+        if len(d) < 3:
+            return []
+        for i in range(len(d) - 2):
+            if d[i + 1] == d[i] + 1 and d[i + 2] == d[i] + 2:
+                res.append(d[i:i + 3])
+        if {102, 107, 110} <= set(ls):
+            res.append([102, 107, 110])
+        if {2, 7, 10} <= set(ls):
+            res.append([2, 7, 10])
+        return res
+
+    @staticmethod
+    def _find_mixed(ls):
+        res = []
+        d = sorted(ls, key=lambda x: x % 100)
+        if len(d) < 3:
+            return []
+        for i in range(len(d)-2):
+            if len(set([x % 100 for x in d[i:i+3]])) == 1:
+                res.append(sorted(d[i:i+3]))
+        return res
+
+
+class Functions:
 
     @staticmethod
     def take_out(ls, pattern):
@@ -77,14 +124,6 @@ class Functions:
             if cnt == n:
                 return ele
         return None
-
-
-
-
-
-
-
-
 
     @staticmethod
     def stdout(screen):
@@ -138,8 +177,15 @@ class _Getch:
 
 
 if __name__ == '__main__':
+    from objects import Pool
     while True:
+        # p = Pool()
+        # cards, a = p.deal_hand(1)[0], p.deal()
+        # hand = sorted([x.order for x in cards + [a]])
+        # print(hand)
+        hand = [1,2,2,3,5,5,5,7,10]
+        check = Analyzer._check_fu(hand)
+        print(check)
         key_in = Functions.stdin()
-        print(key_in)
         if key_in == 'enter' or key_in == 'space':
             break

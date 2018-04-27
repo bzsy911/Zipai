@@ -11,10 +11,6 @@ from game import Game
 
 
 class Zipai:
-    """
-    version 0.2
-    """
-    Version = 0.2
     
     def __init__(self):
         self.games = []
@@ -34,17 +30,12 @@ class Zipai:
             game = self.new_game(len(self.games) % 2+1)
             for _ in game:
                 pass
-
-            print("No more card. Draw Game!")
-            print("Start a new game? (any/n)")
             in_key = Functions.stdin()
         Zipai.end()
 
     @staticmethod
     def welcome():
-        """Welcome Page
-        Press any key to start the first game.
-        Press ESC to quit."""
+        """Welcome Page"""
         Functions.stdout(SCREEN.welcome)
         in_key = Functions.stdin()
         if in_key == 'esc':

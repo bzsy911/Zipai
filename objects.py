@@ -6,8 +6,7 @@ Created on Mon Mar  5 10:15:29 2018
 """
 
 import random
-from const import HANZI, Functions
-from collections import deque
+from const import HANZI, Functions, Analyzer
 
 """############################################################
    # Card     Set              Partial                        #
@@ -495,6 +494,8 @@ class Hand:
     def check(self, bench):
         # check all the things in the order of their priority
         available = {}
+        if self._check_fu(bench):
+            available['fu'] = []
         if self._check_gang_private(bench.order) is not None:
             available['gang'] = ['private', self._check_gang_private(bench.order)]
         elif self._check_gang_public(bench.order):
@@ -613,6 +614,7 @@ class Hand:
         return res
 
     def drop(self, s):
+        # double drop to be implemented
         self.public.append(s)
         for x in s.orders:
             self.orders[1].remove(x)
@@ -630,6 +632,10 @@ class Hand:
             else:
                 return None
 
+    def _check_fu(self, bench):
+        return Analyzer.check_fu(self.orders[1] + [bench.order])
+
+
 
 
 """
@@ -639,14 +645,9 @@ class Hand:
 
     def group(self):
         # aim to list all posible combinations of private card
-        # assume: no dia is in private. They should be dropped as soon as appear
-        # rules: Xiaos must be grouped 
         # if length == 3k, make 0 pair, 0 dandiao
         # if length == 3k+1, make 1 pair, or 1 dandiao
         # if length == 3k+2, make 1 pair, 0 dandiao
-        xiaos = set([order for order in self.orders if self.orders.count(order) == 3])
-        d = [order for order in self.orders if order not in xiaos]
-        
         # search with bfs, keep a dict of strs to avoid dup
         groupings = set()
         queue = deque([([],d)])

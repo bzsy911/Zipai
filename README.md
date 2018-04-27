@@ -1,6 +1,13 @@
 # Zipai
 A toy implementation of Hengyang Zipai (衡阳字牌).
 
+## Version 0.5
+
+- Fu, and its rules
+- Special Fu (Dandiao, Paofu, pie-Paofu)
+- Rules of Ming-Pao
+- Calculate Points
+
 ## Version 0.4
 
 - Qia, and its rules

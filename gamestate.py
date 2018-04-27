@@ -45,6 +45,7 @@ class Gamestate:
         self.bench = bench
         self.pool = pool
         self.end = False
+        self.log = ''
 
     def screen(self, pointing_actions=None, action_choices=None,
                qia_choices=None, drop_choices=None, pointing_cards=None):
@@ -110,6 +111,7 @@ class Gamestate:
         
         ________________________________________________
         your current 胡子:{points}
+        {log}
         """.format(round=self.game_info['round'],
                    cpt_name=self.game_info['cpt_name'],
                    cpt_dealer=cpt_dealer,
@@ -128,7 +130,8 @@ class Gamestate:
                    pointer_2=pointer_2,
                    padding_2=padding_2,
                    hm_name=self.game_info['hm_name'],
-                   hm_dealer=hm_dealer)
+                   hm_dealer=hm_dealer,
+                   log=self.log)
         return screen
 
     def print_screen(self, pointing_actions=None, action_choices=None,
@@ -202,6 +205,14 @@ class Gamestate:
     def check_(self, player_id):
         available = getattr(self, 'hand_'+str(player_id)).check(self.bench)
         icons = []
+        if 'fu' in available:
+            icons.append(6)
+            # need to prevent qia and beng if its the last set
+            if len(getattr(self, 'hand_'+str(player_id)).private[1]) < 3:
+                if 'guo' in available:
+                    icons.append(0)
+                return sorted(icons), available
+
         if 'pao' in available and self.source == 2:
             icons.append(5)
         elif 'gang' in available:
@@ -278,6 +289,9 @@ class HmStrategyState(Gamestate):
             pick = self.pick_actions(icons)
             if pick == 0:
                 return self.pass_()
+            elif pick == 6:
+                return WinState(self.game_info, self.hand_1, self.hand_2, self.source,
+                                self.owner, self.turn, self.table, self.bench, self.pool)
             elif pick == 4 or pick == 5:
                 # dia or pao
                 getattr(self.hand_1, ACTIONS[pick])(self.bench, available['gang'][0], available['gang'][1])
@@ -417,3 +431,32 @@ class DrawGameState(Gamestate):
     def __init__(self, game_info, hand_1, hand_2, source, owner, turn, table, bench, pool):
         super().__init__(game_info, hand_1, hand_2, source, owner, turn, table, bench, pool)
         self.end = True
+        self.log = """
+        No more card. Draw Game!
+        Start a new game? (any/n)
+        """
+
+
+class WinState(Gamestate):
+    def __init__(self, game_info, hand_1, hand_2, source, owner, turn, table, bench, pool):
+        super().__init__(game_info, hand_1, hand_2, source, owner, turn, table, bench, pool)
+        self.end = True
+        self.points = sum([s.points for s in self.hand_1.public])
+        self.log = """
+        You Win! 
+        You earned {p} fu!
+        Start a new game? (any/n)
+        """.format(p=self.points)
+
+
+class LoseState(Gamestate):
+    def __init__(self, game_info, hand_1, hand_2, source, owner, turn, table, bench, pool):
+        super().__init__(game_info, hand_1, hand_2, source, owner, turn, table, bench, pool)
+        self.end = True
+        self.points = -1 * sum([s.points for s in self.hand_2.public])
+        self.log = """
+        You Lose!
+        You lost {p} fu!
+        Start a new game? (any/n)
+        """.format(p=self.points)
+
