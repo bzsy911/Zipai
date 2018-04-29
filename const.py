@@ -64,18 +64,24 @@ class Analyzer:
 
     @staticmethod
     def check_fu(ls):
+        res = []
         queue = deque([([], ls)])
         while queue:
             sets, cards = queue.popleft()
             if not cards:
-                return True
-            if len(cards) == 1:
-                return False
-            if len(cards) == 2:
-                return cards[0] == cards[1]
-            for s in Analyzer._find_all(cards):
-                queue.append((sets + [s], Functions.take_out(cards, s)))
-        return False
+                sets.sort()
+                if sets not in res:
+                    res.append(sets)
+            elif len(cards) == 2:
+                if cards[0] == cards[1]:
+                    sets.append(['Pair', cards[0], cards])
+                    sets.sort()
+                    if sets not in res:
+                        res.append(sets)
+            elif len(cards) >= 3:
+                for s in Analyzer._find_all(cards):
+                    queue.append((sets + [s], Functions.take_out(cards, s[2])))
+        return res
 
     @staticmethod
     def _find_all(ls):
@@ -83,7 +89,7 @@ class Analyzer:
 
     @staticmethod
     def _find_ke(ls):
-        return [[x, x, x] for x in set(ls) if ls.count(x) == 3]
+        return [['Ke', x, [x, x, x]] for x in set(ls) if ls.count(x) == 3]
 
     @staticmethod
     def _find_shun(ls):
@@ -93,11 +99,14 @@ class Analyzer:
             return []
         for i in range(len(d) - 2):
             if d[i + 1] == d[i] + 1 and d[i + 2] == d[i] + 2:
-                res.append(d[i:i + 3])
+                if d[i] % 100 == 1:
+                    res.append(['YiErSan', d[i]//100, d[i:i+3]])
+                else:
+                    res.append(['Shun', d[i+1], d[i:i + 3]])
         if {102, 107, 110} <= set(ls):
-            res.append([102, 107, 110])
+            res.append(['ErQiShi', 1, [102, 107, 110]])
         if {2, 7, 10} <= set(ls):
-            res.append([2, 7, 10])
+            res.append(['ErQiShi', 0, [2, 7, 10]])
         return res
 
     @staticmethod
@@ -107,8 +116,8 @@ class Analyzer:
         if len(d) < 3:
             return []
         for i in range(len(d)-2):
-            if len(set([x % 100 for x in d[i:i+3]])) == 1:
-                res.append(sorted(d[i:i+3]))
+            if len(set([x % 100 for x in d[i:i+3]])) == 1 and 100 < sum(d[i:i+3]) < 300:
+                res.append(['Mixed', [d[i] % 100, sum(d[i:i+3]) > 200], sorted(d[i:i+3])])
         return res
 
 
@@ -184,7 +193,7 @@ if __name__ == '__main__':
         # hand = sorted([x.order for x in cards + [a]])
         # print(hand)
         hand = [1,2,2,3,5,5,5,7,10]
-        check = Analyzer._check_fu(hand)
+        check = Analyzer.check_fu(hand)
         print(check)
         key_in = Functions.stdin()
         if key_in == 'enter' or key_in == 'space':

@@ -494,8 +494,8 @@ class Hand:
     def check(self, bench):
         # check all the things in the order of their priority
         available = {}
-        if self._check_fu(bench):
-            available['fu'] = []
+        if self._check_fu(bench.order):
+            available['fu'] = self._check_fu(bench.order)
         if self._check_gang_private(bench.order) is not None:
             available['gang'] = ['private', self._check_gang_private(bench.order)]
         elif self._check_gang_public(bench.order):
@@ -516,6 +516,13 @@ class Hand:
                 if qualifies:
                     available['qia'] = qualifies
         return available
+
+    def fu(self, sets):
+        if self.orders[0]:
+            self.public.extend([Xiao(x) for x in self.orders[0]])
+        self.public.extend(sets)
+        self.private = ([], [])
+        self.orders = ([], [])
 
     def dia(self, bench, frm, idx):
         if frm == 'private':
@@ -632,8 +639,25 @@ class Hand:
             else:
                 return None
 
-    def _check_fu(self, bench):
-        return Analyzer.check_fu(self.orders[1] + [bench.order])
+    def _check_fu(self, bench_order):
+        res = [[Hand._orders_to_sets(triple, bench_order) for triple in fu]
+               for fu in Analyzer.check_fu(self.orders[1] + [bench_order])]
+        res = [(fu, sum([s.points for s in fu])) for fu in res]
+        res = sorted(res, key=lambda x: x[1], reverse=True)
+        if res:
+            return res[0][0]
+
+    @staticmethod
+    def _orders_to_sets(orders, bench_order):
+        set_name, init, _ = orders
+        if set_name == 'Ke':
+            if init == bench_order:
+                return Beng(init)
+            else:
+                return Xiao(init)
+        if set_name == 'Mixed':
+            return Mixed(init[0], init[1])
+        return eval(set_name)(init)
 
 
 

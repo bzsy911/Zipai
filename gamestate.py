@@ -290,6 +290,7 @@ class HmStrategyState(Gamestate):
             if pick == 0:
                 return self.pass_()
             elif pick == 6:
+                self.hand_1.fu(available['fu'])
                 return WinState(self.game_info, self.hand_1, self.hand_2, self.source,
                                 self.owner, self.turn, self.table, self.bench, self.pool)
             elif pick == 4 or pick == 5:
