@@ -194,7 +194,7 @@ class ConfigScene(cocos.scene.Scene):
 
     def __init__(self):
         super().__init__()
-        self.add(ColorLayer(255, 255, 255, 255, 800, 600))
+        self.add(ColorLayer(204, 255, 204, 255, 800, 600))
         self.add(ConfigPage())
         self.add(SceneControlLayer())
 
@@ -204,15 +204,15 @@ class ConfigPage(cocos.layer.Layer):
     def __init__(self):
         super().__init__()
 
-        self.pic = cocos.sprite.Sprite('images/construction.jpg')
+        self.pic = cocos.sprite.Sprite('images/construction.png')
         self.pic.position = 550, 150
         self.add(self.pic)
 
         self.text1 = cocos.text.Label('This page is for you to enter your name and configure game settings.',
-                                      font_name='Times New Roman', color=(255, 182, 192, 255),
+                                      font_name='Times New Roman', color=(255, 102, 179, 255),
                                       anchor_x = 'center', font_size=18, x=400, y=350)
         self.text2 = cocos.text.Label('Click to continue.',
-                                      font_name='Times New Roman', color=(255, 182, 192, 255),
+                                      font_name='Times New Roman', color=(255, 102, 179, 255),
                                       anchor_x = 'center', font_size=18, x=400, y=300)
         self.add(self.text1)
         self.add(self.text2)
@@ -223,7 +223,7 @@ class LoadScene(cocos.scene.Scene):
 
     def __init__(self):
         super().__init__()
-        self.add(ColorLayer(255, 255, 255, 255, 800, 600))
+        self.add(ColorLayer(204, 255, 204, 255, 800, 600))
         self.add(LoadPage())
         self.add(SceneControlLayer())
 
@@ -233,15 +233,15 @@ class LoadPage(cocos.layer.Layer):
     def __init__(self):
         super().__init__()
 
-        self.pic = cocos.sprite.Sprite('images/construction.jpg')
+        self.pic = cocos.sprite.Sprite('images/construction.png')
         self.pic.position = 550, 150
         self.add(self.pic)
 
         self.text1 = cocos.text.Label('This page is for you to choose a save to load from.',
-                                      font_name='Times New Roman', color=(255, 182, 192, 255),
+                                      font_name='Times New Roman', color=(255, 102, 179, 255),
                                       anchor_x = 'center', font_size=18, x=400, y=350)
         self.text2 = cocos.text.Label('Click to continue.',
-                                      font_name='Times New Roman', color=(255, 182, 192, 255),
+                                      font_name='Times New Roman', color=(255, 102, 179, 255),
                                       anchor_x = 'center', font_size=18, x=400, y=300)
         self.add(self.text1)
         self.add(self.text2)
@@ -252,7 +252,7 @@ class GameScene(cocos.scene.Scene):
 
     def __init__(self):
         super().__init__()
-        self.add(ColorLayer(255, 255, 255, 255, 800, 600))
+        self.add(ColorLayer(204, 255, 204, 255, 800, 600))
         self.add(GamePage())
         self.add(SceneControlLayer())
 
@@ -262,15 +262,15 @@ class GamePage(cocos.layer.Layer):
     def __init__(self):
         super().__init__()
 
-        self.pic = cocos.sprite.Sprite('images/construction.jpg')
+        self.pic = cocos.sprite.Sprite('images/construction.png')
         self.pic.position = 550, 150
         self.add(self.pic)
 
         self.text1 = cocos.text.Label('This is our brand new game room! To be open soon!',
-                                      font_name='Times New Roman', color=(255, 182, 192, 255),
+                                      font_name='Times New Roman', color=(255, 102, 179, 255),
                                       anchor_x = 'center', font_size=18, x=400, y=350)
         self.text2 = cocos.text.Label('Click to go back to the main page.',
-                                      font_name='Times New Roman', color=(255, 182, 192, 255),
+                                      font_name='Times New Roman', color=(255, 102, 179, 255),
                                       anchor_x = 'center', font_size=18, x=400, y=300)
         self.add(self.text1)
         self.add(self.text2)
