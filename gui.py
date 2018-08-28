@@ -8,6 +8,7 @@ from pyglet.window import key, mouse
 
 import sys
 
+from hand_hm import HandHMLayer
 
 """
 class AnimExample(cocos.layer.Layer):
@@ -62,9 +63,9 @@ class SceneControlLayer(cocos.layer.Layer):
             elif SceneControlLayer.active_scene.name == 'Config' or SceneControlLayer.active_scene.name == 'Load':
                 SceneControlLayer.active_scene = GameScene()
                 director.replace(SlideInRTransition(SceneControlLayer.active_scene, duration=0.3))
-            elif SceneControlLayer.active_scene.name == 'Game':
-                SceneControlLayer.active_scene = StartScene()
-                director.replace(SlideInRTransition(SceneControlLayer.active_scene, duration=0.3))
+            # elif SceneControlLayer.active_scene.name == 'Game':
+            #     SceneControlLayer.active_scene = StartScene()
+            #     director.replace(SlideInRTransition(SceneControlLayer.active_scene, duration=0.3))
             else:
                 pass
 
@@ -210,10 +211,10 @@ class ConfigPage(cocos.layer.Layer):
 
         self.text1 = cocos.text.Label('This page is for you to enter your name and configure game settings.',
                                       font_name='Times New Roman', color=(255, 102, 179, 255),
-                                      anchor_x = 'center', font_size=18, x=400, y=350)
+                                      anchor_x='center', font_size=18, x=400, y=350)
         self.text2 = cocos.text.Label('Click to continue.',
                                       font_name='Times New Roman', color=(255, 102, 179, 255),
-                                      anchor_x = 'center', font_size=18, x=400, y=300)
+                                      anchor_x='center', font_size=18, x=400, y=300)
         self.add(self.text1)
         self.add(self.text2)
 
@@ -239,10 +240,10 @@ class LoadPage(cocos.layer.Layer):
 
         self.text1 = cocos.text.Label('This page is for you to choose a save to load from.',
                                       font_name='Times New Roman', color=(255, 102, 179, 255),
-                                      anchor_x = 'center', font_size=18, x=400, y=350)
+                                      anchor_x='center', font_size=18, x=400, y=350)
         self.text2 = cocos.text.Label('Click to continue.',
                                       font_name='Times New Roman', color=(255, 102, 179, 255),
-                                      anchor_x = 'center', font_size=18, x=400, y=300)
+                                      anchor_x='center', font_size=18, x=400, y=300)
         self.add(self.text1)
         self.add(self.text2)
 
@@ -262,18 +263,76 @@ class GamePage(cocos.layer.Layer):
     def __init__(self):
         super().__init__()
 
-        self.pic = cocos.sprite.Sprite('images/construction.png')
-        self.pic.position = 550, 150
-        self.add(self.pic)
+        self.avatar = cocos.sprite.Sprite('images/avatar.jpg', scale=0.25, anchor=(0, 0))
 
-        self.text1 = cocos.text.Label('This is our brand new game room! To be open soon!',
-                                      font_name='Times New Roman', color=(255, 102, 179, 255),
-                                      anchor_x = 'center', font_size=18, x=400, y=350)
-        self.text2 = cocos.text.Label('Click to go back to the main page.',
-                                      font_name='Times New Roman', color=(255, 102, 179, 255),
-                                      anchor_x = 'center', font_size=18, x=400, y=300)
-        self.add(self.text1)
-        self.add(self.text2)
+        # self.hand_hm = ColorLayer(255, 179, 255, 255, 400, 300)
+        self.hand_hm = HandHMLayer()
+        self.hand_hm.scale = 0.5
+        self.hand_hm.anchor = (0, 0)
+        self.hand_hm.position = 200, 0
+
+        self.sets_hm = ColorLayer(255, 255, 179, 255, 200, 250)
+        self.sets_hm.position = 600, 0
+
+        self.table = ColorLayer(34, 177, 76, 255, 400, 200)
+        self.table.position = 200, 300
+
+        # self.buttons = ColorLayer(179, 179, 255, 255, 300, 50)
+        # self.buttons.position = 250, 250
+
+        self.settings = ColorLayer(255, 179, 179, 255, 800, 50)
+        self.settings.position = 0, 550
+
+        self.sets_cpt = ColorLayer(255, 255, 179, 255, 200, 250)
+        self.sets_cpt.position = 0, 300
+
+        self.hand_cpt = ColorLayer(255, 179, 255, 255, 400, 50)
+        self.hand_cpt.position = 200, 500
+
+        self.stella = cocos.sprite.Sprite('images/stella.jpg', position=(600, 350),
+                                          scale=0.25, anchor=(0, 0))
+
+        self.logs_hm = ColorLayer(255, 179, 179, 255, 200, 100)
+        self.logs_hm.position = 0, 200
+
+        self.logs_cpt = ColorLayer(255, 179, 179, 255, 200, 100)
+        self.logs_cpt.position = 600, 250
+
+        self.add(self.avatar)
+        self.add(self.hand_hm)
+        self.add(self.sets_hm)
+        self.add(self.table)
+        # self.add(self.buttons)
+        self.add(self.settings)
+        self.add(self.sets_cpt)
+        self.add(self.hand_cpt)
+        self.add(self.stella)
+        self.add(self.logs_hm)
+        self.add(self.logs_cpt)
+
+        self.text_settings = BlackCenterLabel('存档 读档 悔棋 积分 音乐 音效 帮助 退出', 400, 575)
+        self.text_hand_cpt = BlackCenterLabel('电脑手牌', 400, 525)
+        self.text_table = BlackCenterLabel('牌桌', 400, 400)
+        self.text_button = BlackCenterLabel('过 吃 碰 笑 掉 胡', 400, 280)
+        self.text_logs_hm = BlackCenterLabel('回合信息', 100, 250)
+        self.text_logs_cpt = BlackCenterLabel('回合信息', 700, 300)
+        self.text_sets_hm = BlackCenterLabel('落地', 700, 125)
+        self.text_sets_cpt = BlackCenterLabel('落地', 100, 425)
+
+        self.add(self.text_settings)
+        self.add(self.text_hand_cpt)
+        self.add(self.text_table)
+        self.add(self.text_button)
+        self.add(self.text_logs_hm)
+        self.add(self.text_logs_cpt)
+        self.add(self.text_sets_hm)
+        self.add(self.text_sets_cpt)
+
+
+class BlackCenterLabel(cocos.text.Label):
+
+    def __init__(self, text, x, y):
+        super().__init__(text, (x, y), color=(0, 0, 0, 255), anchor_x='center', anchor_y='center', font_size=18)
 
 
 if __name__ == "__main__":
